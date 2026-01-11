@@ -6,9 +6,10 @@ import { api } from '../services/api';
 
 interface LoginProps {
   onLogin: (user: User) => void;
+  onShowSignup: () => void;
 }
 
-export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+export const Login: React.FC<LoginProps> = ({ onLogin, onShowSignup }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -105,9 +106,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-xs text-zinc-400">
-            Backend Ready Authentication
+        <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 text-center">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Don't have an account?{' '}
+            <button
+              onClick={onShowSignup}
+              className="font-bold text-zinc-900 dark:text-white hover:underline"
+            >
+              Sign Up
+            </button>
           </p>
         </div>
       </div>

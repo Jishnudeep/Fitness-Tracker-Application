@@ -38,6 +38,23 @@ export const api = {
         return user;
     },
 
+    async signup(username: string): Promise<User> {
+        if (ENABLE_BACKEND) {
+            const res = await fetch(`${API_URL}/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            return handleResponse(res);
+        }
+
+        // Mock Signup
+        await delay(1000);
+        const user: User = { username, isLoggedIn: true };
+        storage.saveUser(user);
+        return user;
+    },
+
     // --- Workouts ---
     async getWorkouts(): Promise<Workout[]> {
         if (ENABLE_BACKEND) {

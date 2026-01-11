@@ -6,6 +6,7 @@ import { WorkoutLog } from './components/WorkoutLog';
 import { CalorieLog } from './components/CalorieLog';
 import { AIChat } from './components/AIChat';
 import { Login } from './components/Login';
+import { Signup } from './components/Signup';
 import { api } from './services/api';
 import {
   getTheme, saveTheme,
@@ -14,6 +15,7 @@ import {
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
   const [view, setView] = useState<ViewState>('dashboard');
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -67,7 +69,10 @@ const App: React.FC = () => {
 
   const handleLogin = (newUser: User) => {
     setUser(newUser);
-    // Note: storage.saveUser is handled inside api.login (mock) or handled via token in real auth
+  };
+
+  const handleSignup = (newUser: User) => {
+    setUser(newUser);
   };
 
   const handleLogout = () => {
@@ -76,6 +81,7 @@ const App: React.FC = () => {
     setView('dashboard');
     setWorkouts([]);
     setMeals([]);
+    setAuthView('login');
   };
 
   const handleSaveWorkout = async (workout: Workout) => {
@@ -158,9 +164,12 @@ const App: React.FC = () => {
     { id: 'ai', label: 'AI Chat', icon: MessageSquare },
   ];
 
-  // If not logged in, show Login screen
+  // If not logged in, show Auth screens
   if (!user) {
-    return <Login onLogin={handleLogin} />;
+    if (authView === 'signup') {
+      return <Signup onSignup={handleSignup} onBackToLogin={() => setAuthView('login')} />;
+    }
+    return <Login onLogin={handleLogin} onShowSignup={() => setAuthView('signup')} />;
   }
 
   return (
@@ -208,8 +217,8 @@ const App: React.FC = () => {
                 onClick={() => setView(item.id as ViewState)}
                 disabled={isSaving}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${view === item.id
-                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                  : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50'
                   } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <item.icon size={18} />
