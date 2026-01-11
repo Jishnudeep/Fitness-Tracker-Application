@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { User } from '../types';
 import { LogIn, Key, User as UserIcon } from 'lucide-react';
+import { api } from '../services/api';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -13,35 +14,31 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate API delay
-    setTimeout(() => {
-      if (username.trim().length < 3) {
-        setError('Username must be at least 3 characters');
-        setIsLoading(false);
-        return;
-      }
-
-      if (password.length < 4) {
-        setError('Password is too short');
-        setIsLoading(false);
-        return;
-      }
-
-      // Simple client-side auth simulation
-      // In the future, this is where you would call a real backend API
-      const user: User = {
-        username: username,
-        isLoggedIn: true
-      };
-
-      onLogin(user);
+    if (username.trim().length < 3) {
+      setError('Username must be at least 3 characters');
       setIsLoading(false);
-    }, 800);
+      return;
+    }
+
+    if (password.length < 4) {
+      setError('Password is too short');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const user = await api.login(username);
+      onLogin(user);
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,8 +59,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <label className="block text-sm font-medium mb-1.5 text-zinc-600 dark:text-zinc-400">Username</label>
               <div className="relative">
                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-10 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-1 focus:ring-zinc-500 outline-none text-zinc-900 dark:text-zinc-100 transition-all"
@@ -77,8 +74,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <label className="block text-sm font-medium mb-1.5 text-zinc-600 dark:text-zinc-400">Password</label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-1 focus:ring-zinc-500 outline-none text-zinc-900 dark:text-zinc-100 transition-all"
@@ -95,8 +92,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           )}
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full py-4 text-base font-bold shadow-lg shadow-zinc-500/10"
             disabled={isLoading}
           >
@@ -107,11 +104,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             )}
           </Button>
         </form>
-        
+
         <div className="mt-6 text-center">
-            <p className="text-xs text-zinc-400">
-                Secure Client-Side Authentication
-            </p>
+          <p className="text-xs text-zinc-400">
+            Backend Ready Authentication
+          </p>
         </div>
       </div>
     </div>
