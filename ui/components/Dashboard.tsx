@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Workout, Meal } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
-import { Activity, Flame, Dumbbell, TrendingUp, Calendar, Weight, Clock, ChevronDown } from 'lucide-react';
+import { Activity, Flame, Dumbbell, TrendingUp, Calendar, Weight, Clock, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DailyView } from './DailyView';
 
 interface DashboardProps {
   workouts: Workout[];
@@ -11,6 +12,7 @@ interface DashboardProps {
 type TimeRange = 'week' | 'month' | 'all' | 'custom';
 
 export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'daily'>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
   const [customStart, setCustomStart] = useState(() => {
     const d = new Date();
@@ -18,13 +20,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
     return d.toISOString().split('T')[0];
   });
   const [customEnd, setCustomEnd] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDay, setSelectedDay] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const goToPreviousDay = () => {
+    const d = new Date(selectedDay);
+    d.setDate(d.getDate() - 1);
+    setSelectedDay(d.toISOString().split('T')[0]);
+  };
+
+  const goToNextDay = () => {
+    const d = new Date(selectedDay);
+    d.setDate(d.getDate() + 1);
+    setSelectedDay(d.toISOString().split('T')[0]);
+  };
 
   // Filter data based on selected time range
   const { filteredWorkouts, filteredMeals, dateLabels } = useMemo(() => {
     let startDate = new Date();
     let endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
-    
+
     // Determine Start/End dates
     if (timeRange === 'week') {
       startDate.setDate(endDate.getDate() - 6);
@@ -39,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
       endDate.setHours(23, 59, 59, 999);
     } else {
       // 'all'
-      startDate = new Date(0); 
+      startDate = new Date(0);
     }
 
     // Filter actual data
@@ -47,7 +62,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
       const d = new Date(w.date);
       return d >= startDate && d <= endDate;
     });
-    
+
     const fMeals = meals.filter(m => {
       const d = new Date(m.date);
       return d >= startDate && d <= endDate;
@@ -55,32 +70,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
 
     // Generate date labels
     let labels: string[] = [];
-    
-    if (timeRange === 'all') {
-         const allDates = [...workouts.map(w => w.date), ...meals.map(m => m.date)].sort();
-        if (allDates.length > 0) {
-            const first = new Date(allDates[0]);
-            const last = new Date(allDates[allDates.length - 1]);
-            const current = new Date(first);
-            current.setHours(0,0,0,0);
-            const end = new Date(last);
-            end.setHours(23,59,59,999);
 
-            // Limit 'all' points if too many, but for now simple loop
-            while (current <= end) {
-                labels.push(current.toISOString().split('T')[0]);
-                current.setDate(current.getDate() + 1);
-            }
+    if (timeRange === 'all') {
+      const allDates = [...workouts.map(w => w.date), ...meals.map(m => m.date)].sort();
+      if (allDates.length > 0) {
+        const first = new Date(allDates[0]);
+        const last = new Date(allDates[allDates.length - 1]);
+        const current = new Date(first);
+        current.setHours(0, 0, 0, 0);
+        const end = new Date(last);
+        end.setHours(23, 59, 59, 999);
+
+        // Limit 'all' points if too many, but for now simple loop
+        while (current <= end) {
+          labels.push(current.toISOString().split('T')[0]);
+          current.setDate(current.getDate() + 1);
         }
+      }
     } else {
-        // Generate continuous days between start and end
-        if (startDate <= endDate) {
-            const current = new Date(startDate);
-            while (current <= endDate) {
-                labels.push(current.toISOString().split('T')[0]);
-                current.setDate(current.getDate() + 1);
-            }
+      // Generate continuous days between start and end
+      if (startDate <= endDate) {
+        const current = new Date(startDate);
+        while (current <= endDate) {
+          labels.push(current.toISOString().split('T')[0]);
+          current.setDate(current.getDate() + 1);
         }
+      }
     }
 
     return { filteredWorkouts: fWorkouts, filteredMeals: fMeals, dateLabels: labels };
@@ -156,192 +171,257 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
 
   return (
     <div className="space-y-6 pb-20 md:pb-0 animate-in fade-in duration-500">
-      
-      {/* Header & Filter */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Performance Overview</h2>
-            <p className="text-sm text-zinc-500">Track your metrics over time</p>
+
+      {/* View Toggle */}
+      <div className="flex justify-center">
+        <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl shadow-inner border border-zinc-200 dark:border-zinc-800">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'overview'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+              : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              }`}
+          >
+            Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('daily')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'daily'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+              : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              }`}
+          >
+            Daily Details
+          </button>
         </div>
-        
-        <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center w-full sm:w-auto">
-            {timeRange === 'custom' && (
+      </div>
+
+      {activeTab === 'overview' ? (
+        <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
+
+          {/* Header & Filter */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Performance Overview</h2>
+              <p className="text-sm text-zinc-500">Track your metrics over time</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center w-full sm:w-auto">
+              {timeRange === 'custom' && (
                 <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1 pr-2 rounded-lg border border-zinc-200 dark:border-zinc-800 animate-in fade-in slide-in-from-right-2 shadow-sm">
-                    <input 
-                        type="date" 
-                        value={customStart}
-                        onChange={(e) => setCustomStart(e.target.value)}
-                        className="bg-transparent border-none text-xs font-medium text-zinc-600 dark:text-zinc-300 focus:ring-0 p-1 outline-none"
-                    />
-                    <span className="text-zinc-400 text-xs">to</span>
-                    <input 
-                        type="date" 
-                        value={customEnd}
-                        onChange={(e) => setCustomEnd(e.target.value)}
-                        className="bg-transparent border-none text-xs font-medium text-zinc-600 dark:text-zinc-300 focus:ring-0 p-1 outline-none"
-                    />
+                  <input
+                    type="date"
+                    value={customStart}
+                    onChange={(e) => setCustomStart(e.target.value)}
+                    className="bg-transparent border-none text-xs font-medium text-zinc-600 dark:text-zinc-300 focus:ring-0 p-1 outline-none"
+                  />
+                  <span className="text-zinc-400 text-xs text-pink-500">to</span>
+                  <input
+                    type="date"
+                    value={customEnd}
+                    onChange={(e) => setCustomEnd(e.target.value)}
+                    className="bg-transparent border-none text-xs font-medium text-zinc-600 dark:text-zinc-300 focus:ring-0 p-1 outline-none"
+                  />
                 </div>
-            )}
-            <div className="relative w-full sm:w-auto">
+              )}
+              <div className="relative w-full sm:w-auto">
                 <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-                    className="w-full sm:w-auto appearance-none pl-4 pr-10 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 cursor-pointer shadow-sm"
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value as TimeRange)}
+                  className="w-full sm:w-auto appearance-none pl-4 pr-10 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 cursor-pointer shadow-sm"
                 >
-                    <option value="week">Last 7 Days</option>
-                    <option value="month">Last 30 Days</option>
-                    <option value="all">All Time</option>
-                    <option value="custom">Custom Range</option>
+                  <option value="week">Last 7 Days</option>
+                  <option value="month">Last 30 Days</option>
+                  <option value="all">All Time</option>
+                  <option value="custom">Custom Range</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={16} />
+              </div>
             </div>
-        </div>
-      </div>
+          </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Workouts */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
-               <span className="text-sm font-medium">Workouts</span>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Workouts */}
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
+                  <span className="text-sm font-medium">Workouts</span>
+                </div>
+                <Activity size={16} className="text-blue-500" />
+              </div>
+              <p className="text-3xl font-bold">{stats.totalWorkouts}</p>
+              <div className="flex items-center text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                <Clock size={12} className="mr-1 text-emerald-500" />
+                <span>{Math.round(stats.totalDuration / 60)}h {stats.totalDuration % 60}m total</span>
+              </div>
             </div>
-            <Activity size={16} className="text-zinc-400 dark:text-zinc-500" />
-          </div>
-          <p className="text-3xl font-bold">{stats.totalWorkouts}</p>
-          <div className="flex items-center text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-             <Clock size={12} className="mr-1" />
-             <span>{Math.round(stats.totalDuration / 60)}h {stats.totalDuration % 60}m total</span>
-          </div>
-        </div>
 
-        {/* Volume */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
-               <span className="text-sm font-medium">Volume</span>
+            {/* Volume */}
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
+                  <span className="text-sm font-medium">Volume</span>
+                </div>
+                <Weight size={16} className="text-indigo-500" />
+              </div>
+              <p className="text-3xl font-bold">{stats.totalVolume.toLocaleString()}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">kg lifted</p>
             </div>
-            <Weight size={16} className="text-zinc-400 dark:text-zinc-500" />
-          </div>
-          <p className="text-3xl font-bold">{stats.totalVolume.toLocaleString()}</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">kg lifted</p>
-        </div>
 
-        {/* Calories */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
-          <div className="flex justify-between items-start mb-2">
-             <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
-               <span className="text-sm font-medium">Avg Calories</span>
+            {/* Calories */}
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
+                  <span className="text-sm font-medium">Avg Calories</span>
+                </div>
+                <Flame size={16} className="text-orange-500" />
+              </div>
+              <p className="text-3xl font-bold">{stats.avgCalories}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Daily average</p>
             </div>
-            <Flame size={16} className="text-zinc-400 dark:text-zinc-500" />
-          </div>
-          <p className="text-3xl font-bold">{stats.avgCalories}</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Daily average</p>
-        </div>
 
-        {/* Days Tracked */}
-        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
-          <div className="flex justify-between items-start mb-2">
-             <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
-               <span className="text-sm font-medium">Active Days</span>
+            {/* Days Tracked */}
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 relative overflow-hidden group">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-100">
+                  <span className="text-sm font-medium">Active Days</span>
+                </div>
+                <Calendar size={16} className="text-pink-500" />
+              </div>
+              <p className="text-3xl font-bold">{stats.activeDays}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">In this period</p>
             </div>
-            <Calendar size={16} className="text-zinc-400 dark:text-zinc-500" />
           </div>
-          <p className="text-3xl font-bold">{stats.activeDays}</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">In this period</p>
-        </div>
-      </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Volume Chart */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
-          <h3 className="text-lg font-semibold mb-4 flex items-center text-sm text-zinc-900 dark:text-zinc-100">
-            <TrendingUp className="mr-2 text-indigo-500" size={18} />
-            Volume Load
-          </h3>
-          <div className="h-64 w-full">
-            {chartData.some(d => d.volume > 0) ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
-                  <XAxis dataKey="shortDate" tick={{fontSize: 10, fill: '#71717a'}} stroke="#71717a" axisLine={false} tickLine={false} interval={dateLabels.length > 14 ? 'preserveStartEnd' : 0} />
-                  <YAxis tick={{fontSize: 10, fill: '#71717a'}} stroke="#71717a" axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#18181b', color: '#fff', fontSize: '12px' }} 
-                    labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
-                  />
-                  <Area type="monotone" dataKey="volume" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorVolume)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-                <div className="h-full flex flex-col items-center justify-center text-zinc-400 text-sm text-center opacity-60">
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Volume Chart */}
+            <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-sm text-zinc-900 dark:text-zinc-100">
+                <TrendingUp className="mr-2 text-indigo-500" size={18} />
+                Volume Load
+              </h3>
+              <div className="h-64 w-full">
+                {chartData.some(d => d.volume > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
+                      <XAxis dataKey="shortDate" tick={{ fontSize: 10, fill: '#71717a' }} stroke="#71717a" axisLine={false} tickLine={false} interval={dateLabels.length > 14 ? 'preserveStartEnd' : 0} />
+                      <YAxis tick={{ fontSize: 10, fill: '#71717a' }} stroke="#71717a" axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#18181b', color: '#fff', fontSize: '12px' }}
+                        labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
+                      />
+                      <Area type="monotone" dataKey="volume" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorVolume)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-zinc-400 text-sm text-center opacity-60">
                     <Dumbbell size={32} className="mb-2" />
                     No workout volume in this period
-                </div>
-            )}
-          </div>
-        </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-        {/* Calories Chart */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
-          <h3 className="text-lg font-semibold mb-4 flex items-center text-sm text-zinc-900 dark:text-zinc-100">
-            <Activity className="mr-2 text-pink-500" size={18} />
-            Calorie Intake
-          </h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
-                <XAxis dataKey="shortDate" tick={{fontSize: 10, fill: '#71717a'}} stroke="#71717a" axisLine={false} tickLine={false} interval={dateLabels.length > 14 ? 'preserveStartEnd' : 0} />
-                <YAxis tick={{fontSize: 10, fill: '#71717a'}} stroke="#71717a" axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#18181b', color: '#fff', fontSize: '12px' }}
-                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                  labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
-                />
-                <Bar dataKey="calories" fill="#ec4899" radius={[4, 4, 0, 0]} barSize={dateLabels.length > 14 ? 10 : 30} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+            {/* Calories Chart */}
+            <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-sm text-zinc-900 dark:text-zinc-100">
+                <Activity className="mr-2 text-pink-500" size={18} />
+                Calorie Intake
+              </h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
+                    <XAxis dataKey="shortDate" tick={{ fontSize: 10, fill: '#71717a' }} stroke="#71717a" axisLine={false} tickLine={false} interval={dateLabels.length > 14 ? 'preserveStartEnd' : 0} />
+                    <YAxis tick={{ fontSize: 10, fill: '#71717a' }} stroke="#71717a" axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#18181b', color: '#fff', fontSize: '12px' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                      labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
+                    />
+                    <Bar dataKey="calories" fill="#ec4899" radius={[4, 4, 0, 0]} barSize={dateLabels.length > 14 ? 10 : 30} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
-        {/* Duration Chart */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4 flex items-center text-sm text-zinc-900 dark:text-zinc-100">
-            <Clock className="mr-2 text-emerald-500" size={18} />
-            Workout Duration (Minutes)
-          </h3>
-          <div className="h-64 w-full">
-             {chartData.some(d => d.duration > 0) ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
-                  <XAxis dataKey="shortDate" tick={{fontSize: 10, fill: '#71717a'}} stroke="#71717a" axisLine={false} tickLine={false} interval={dateLabels.length > 14 ? 'preserveStartEnd' : 0} />
-                  <YAxis tick={{fontSize: 10, fill: '#71717a'}} stroke="#71717a" axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#18181b', color: '#fff', fontSize: '12px' }}
-                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                    labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
-                  />
-                  <Bar dataKey="duration" fill="#10b981" radius={[4, 4, 0, 0]} barSize={dateLabels.length > 14 ? 10 : 30} />
-                </BarChart>
-              </ResponsiveContainer>
-             ) : (
-                <div className="h-full flex flex-col items-center justify-center text-zinc-400 text-sm text-center opacity-60">
+            {/* Duration Chart */}
+            <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 lg:col-span-2">
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-sm text-zinc-900 dark:text-zinc-100">
+                <Clock className="mr-2 text-emerald-500" size={18} />
+                Workout Duration (Minutes)
+              </h3>
+              <div className="h-64 w-full">
+                {chartData.some(d => d.duration > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" opacity={0.1} />
+                      <XAxis dataKey="shortDate" tick={{ fontSize: 10, fill: '#71717a' }} stroke="#71717a" axisLine={false} tickLine={false} interval={dateLabels.length > 14 ? 'preserveStartEnd' : 0} />
+                      <YAxis tick={{ fontSize: 10, fill: '#71717a' }} stroke="#71717a" axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: '#18181b', color: '#fff', fontSize: '12px' }}
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
+                      />
+                      <Bar dataKey="duration" fill="#10b981" radius={[4, 4, 0, 0]} barSize={dateLabels.length > 14 ? 10 : 30} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-zinc-400 text-sm text-center opacity-60">
                     <Clock size={32} className="mb-2" />
                     No duration data in this period
-                </div>
-            )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+          <div id="daily-details" className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            <div className="border-b border-zinc-100 dark:border-zinc-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Daily Details</h3>
+                <p className="text-xs text-zinc-500">Pick a day to see exactly what happened</p>
+              </div>
+
+              <div className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 p-1 rounded-xl">
+                <button
+                  onClick={goToPreviousDay}
+                  className="p-1.5 hover:bg-white dark:hover:bg-zinc-700 rounded-lg transition-all"
+                >
+                  <ChevronLeft size={18} className="text-indigo-500" />
+                </button>
+                <input
+                  type="date"
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  className="bg-transparent border-none text-sm font-bold text-zinc-900 dark:text-white focus:ring-0 p-1 outline-none text-center"
+                />
+                <button
+                  onClick={goToNextDay}
+                  className="p-1.5 hover:bg-white dark:hover:bg-zinc-700 rounded-lg transition-all"
+                >
+                  <ChevronRight size={18} className="text-indigo-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <DailyView date={selectedDay} workouts={workouts} meals={meals} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

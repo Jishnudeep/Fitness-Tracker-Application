@@ -32,6 +32,16 @@ export interface Workout {
   notes?: string;
 }
 
+export interface FoodItem {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  quantity: number;
+}
+
 export interface Meal {
   id: string;
   name: string;
@@ -41,6 +51,7 @@ export interface Meal {
   fats: number;
   date: string; // ISO string
   type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+  items?: FoodItem[];
 }
 
 export interface ChatMessage {
