@@ -1,9 +1,9 @@
 import React from 'react';
 import { Workout, Meal } from '../types';
-import { Dumbbell, Utensils, Clock, Flame, Info, ChevronRight, Apple, Beef, Droplets, Weight } from 'lucide-react';
+import { Dumbbell, Utensils, Clock, Flame, Info, Apple, Weight } from 'lucide-react';
 
 interface DailyViewProps {
-    date: string; // ISO string or YYYY-MM-DD
+    date: string;
     workouts: Workout[];
     meals: Meal[];
 }
@@ -33,152 +33,119 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
     const totalDuration = dailyWorkouts.reduce((acc, w) => acc + (w.durationMinutes || 0), 0);
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">{displayDate}</h2>
-                    <p className="text-sm text-zinc-500">Summary of your day</p>
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+
+            {/* Nutrition Section */}
+            <div className="bg-white dark:bg-black p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 shadow-sm">
+                <div className="flex items-center gap-3 mb-10">
+                    <Utensils size={20} className="text-zinc-900 dark:text-white" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Nutrition</h3>
                 </div>
+
+                {dailyMeals.length > 0 ? (
+                    <div className="space-y-10">
+                        <div className="grid grid-cols-4 gap-4">
+                            {[
+                                { label: 'Calories', val: totalCalories },
+                                { label: 'Protein', val: `${totalProtein}g` },
+                                { label: 'Carbs', val: `${totalCarbs}g` },
+                                { label: 'Fats', val: `${totalFats}g` }
+                            ].map((s, i) => (
+                                <div key={i} className="text-center">
+                                    <p className="text-2xl font-black text-zinc-900 dark:text-white">{s.val}</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold mt-1">{s.label}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="space-y-4 pt-8 border-t border-zinc-50 dark:border-zinc-900">
+                            {dailyMeals.map((meal) => (
+                                <div key={meal.id} className="p-6 rounded-3xl bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-900 flex justify-between items-center group">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl">
+                                            <Flame size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-base font-black text-zinc-900 dark:text-white leading-tight">{meal.name}</p>
+                                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">{meal.type}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-lg font-black text-zinc-900 dark:text-white">{meal.calories} <span className="text-[10px] font-bold opacity-30">kcal</span></p>
+                                        <p className="text-[9px] text-zinc-400 font-black uppercase tracking-tighter">P:{meal.protein} C:{meal.carbs} F:{meal.fats}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="py-20 text-center">
+                        <Apple size={40} className="mx-auto mb-4 text-zinc-100 dark:text-zinc-900" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Empty Log</p>
+                    </div>
+                )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Nutrition Summary Card */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center gap-2 mb-6 text-pink-500">
-                        <Utensils size={20} className="text-pink-500" />
-                        <h3 className="font-bold text-lg text-zinc-900 dark:text-white">Nutrition Log</h3>
-                    </div>
-
-                    {dailyMeals.length > 0 ? (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-4 gap-2">
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight">{totalCalories}</p>
-                                    <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mt-1">Calories</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-zinc-900 dark:text-white">{totalProtein}g</p>
-                                    <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mt-1">Protein</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-zinc-900 dark:text-white">{totalCarbs}g</p>
-                                    <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mt-1">Carbs</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-zinc-900 dark:text-white">{totalFats}g</p>
-                                    <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mt-1">Fats</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                {dailyMeals.map((meal) => (
-                                    <div key={meal.id} className="space-y-2">
-                                        <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-lg text-pink-600 dark:text-pink-400">
-                                                    <Flame size={16} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-zinc-900 dark:text-white leading-tight">{meal.name}</p>
-                                                    <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{meal.type}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-black text-zinc-900 dark:text-white">{meal.calories} <span className="text-[10px] font-normal">kcal</span></p>
-                                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">P:{meal.protein}g C:{meal.carbs}g F:{meal.fats}g</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Itemized List */}
-                                        {meal.items && meal.items.length > 0 && (
-                                            <div className="ml-4 pl-4 border-l-2 border-zinc-100 dark:border-zinc-800 space-y-1 py-1">
-                                                {meal.items.map((item, idx) => (
-                                                    <div key={item.id} className="flex justify-between items-center text-[10px]">
-                                                        <span className="text-zinc-500 font-medium">
-                                                            {idx + 1}. <span className="text-pink-500 font-bold">{item.quantity}x</span> {item.name}
-                                                        </span>
-                                                        <span className="text-zinc-400">{item.calories * item.quantity} kcal</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                            <Apple size={40} className="mb-2 text-zinc-300" />
-                            <p className="text-sm text-zinc-500">No meals logged for this day</p>
-                        </div>
-                    )}
+            {/* Fitness Section */}
+            <div className="bg-white dark:bg-black p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 shadow-sm">
+                <div className="flex items-center gap-3 mb-10">
+                    <Dumbbell size={20} className="text-zinc-900 dark:text-white" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Training</h3>
                 </div>
 
-                {/* Workout Summary Card */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex items-center gap-2 mb-6 text-indigo-500">
-                        <Dumbbell size={20} className="text-indigo-500" />
-                        <h3 className="font-bold text-lg text-zinc-900 dark:text-white">Training Sessions</h3>
-                    </div>
-
-                    {dailyWorkouts.length > 0 ? (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl">
-                                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
-                                        <Clock size={16} className="text-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{totalDuration} min</p>
-                                        <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">Total Duration</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl">
-                                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
-                                        <Weight size={16} className="text-emerald-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{totalWeight.toLocaleString()} kg</p>
-                                        <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">Total Volume</p>
-                                    </div>
+                {dailyWorkouts.length > 0 ? (
+                    <div className="space-y-10">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
+                                <Clock size={20} className="text-zinc-400" />
+                                <div>
+                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalDuration} min</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Duration</p>
                                 </div>
                             </div>
+                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
+                                <Weight size={20} className="text-zinc-400" />
+                                <div>
+                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalWeight.toLocaleString()} kg</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Volume</p>
+                                </div>
+                            </div>
+                        </div>
 
-                            <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                {dailyWorkouts.map((workout) => (
-                                    <div key={workout.id} className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm font-bold text-indigo-500 uppercase tracking-tight">{workout.name}</p>
-                                            {workout.notes && <button title={workout.notes} className="text-orange-400 hover:text-orange-600"><Info size={14} className="text-orange-500" /></button>}
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-2">
-                                            {workout.exercises.map((ex) => (
-                                                <div key={ex.id} className="p-3 border border-zinc-100 dark:border-zinc-800 rounded-xl">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <p className="text-xs font-bold text-zinc-900 dark:text-white">{ex.name}</p>
-                                                        <span className="text-[10px] px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded font-medium">{ex.muscleGroup}</span>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {ex.sets.map((s, idx) => (
-                                                            <div key={s.id} className="text-[10px] bg-zinc-50 dark:bg-zinc-800/50 px-2 py-1 rounded text-zinc-600 dark:text-zinc-400 flex items-center">
-                                                                <span className="font-bold mr-1">{idx + 1}.</span> {s.weight}kg x {s.reps}
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                        <div className="space-y-6 pt-8 border-t border-zinc-50 dark:border-zinc-900">
+                            {dailyWorkouts.map((workout) => (
+                                <div key={workout.id} className="space-y-6">
+                                    <div className="flex justify-between items-center group">
+                                        <p className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-[0.2em]">{workout.name}</p>
+                                        {workout.notes && <button className="text-zinc-300 hover:text-zinc-600 transition-colors"><Info size={14} /></button>}
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {workout.exercises.map((ex) => (
+                                            <div key={ex.id} className="p-6 bg-zinc-50/30 dark:bg-zinc-950/10 rounded-3xl border border-zinc-50 dark:border-zinc-900/50">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <p className="text-sm font-black text-zinc-800 dark:text-zinc-200">{ex.name}</p>
+                                                    <span className="text-[8px] font-black px-2 py-1 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 rounded-full uppercase tracking-wider">{ex.muscleGroup}</span>
                                                 </div>
-                                            ))}
-                                        </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {ex.sets.map((s, idx) => (
+                                                        <div key={s.id} className="text-[9px] font-bold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50 text-zinc-500">
+                                                            <span className="text-zinc-300 mr-1">{idx + 1}</span> {s.weight}kg x {s.reps}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                            <Dumbbell size={40} className="mb-2 text-zinc-300" />
-                            <p className="text-sm text-zinc-500">No workouts logged for this day</p>
-                        </div>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    <div className="py-20 text-center">
+                        <Dumbbell size={40} className="mx-auto mb-4 text-zinc-100 dark:text-zinc-900" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">No Activity</p>
+                    </div>
+                )}
             </div>
         </div>
     );

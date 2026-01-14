@@ -32,6 +32,23 @@ export interface Workout {
   notes?: string;
 }
 
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  exercises: {
+    name: string;
+    muscleGroup: MuscleGroup;
+    defaultSets: number;
+  }[];
+}
+
+export interface ExercisePerformance {
+  exerciseName: string;
+  lastWeight: number;
+  lastReps: number;
+  lastDate: string;
+}
+
 export interface FoodItem {
   id: string;
   name: string;

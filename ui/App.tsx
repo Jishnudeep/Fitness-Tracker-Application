@@ -36,6 +36,13 @@ const App: React.FC = () => {
     const savedTheme = getTheme();
     setTheme(savedTheme);
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+
+    // Handle cross-component view changes
+    const handleViewChange = (e: any) => {
+      if (e.detail) setView(e.detail as ViewState);
+    };
+    window.addEventListener('changeView', handleViewChange);
+    return () => window.removeEventListener('changeView', handleViewChange);
   }, []);
 
   // Fetch data when user logs in

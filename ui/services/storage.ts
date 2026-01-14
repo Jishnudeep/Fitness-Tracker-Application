@@ -1,9 +1,11 @@
-import { Workout, Meal, ChatMessage, User } from '../types';
+import { Workout, Meal, ChatMessage, User, WorkoutTemplate, FoodItem } from '../types';
 
 const WORKOUTS_KEY = 'cutroute_workouts';
 const MEALS_KEY = 'cutroute_meals';
 const THEME_KEY = 'cutroute_theme';
 const USER_KEY = 'cutroute_user';
+const TEMPLATES_KEY = 'cutroute_templates';
+const RECENT_FOOD_KEY = 'cutroute_recent_food';
 
 export const saveWorkouts = (workouts: Workout[]) => {
   localStorage.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
@@ -56,4 +58,24 @@ export const getDailyCalories = (date: string): number => {
       return mDate >= dayStart && mDate <= dayEnd;
     })
     .reduce((acc, curr) => acc + curr.calories, 0);
+};
+
+// Templates
+export const saveTemplates = (templates: WorkoutTemplate[]) => {
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+};
+
+export const getTemplates = (): WorkoutTemplate[] => {
+  const data = localStorage.getItem(TEMPLATES_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+// Recent Food
+export const saveRecentFoods = (foods: FoodItem[]) => {
+  localStorage.setItem(RECENT_FOOD_KEY, JSON.stringify(foods));
+};
+
+export const getRecentFoods = (): FoodItem[] => {
+  const data = localStorage.getItem(RECENT_FOOD_KEY);
+  return data ? JSON.parse(data) : [];
 };
