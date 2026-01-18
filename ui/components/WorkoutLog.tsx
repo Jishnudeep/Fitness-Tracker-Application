@@ -182,8 +182,8 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
       <div className="bg-white dark:bg-black p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h2 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Session</h2>
-            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Manual logging interface</p>
+            <h2 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Workout Session</h2>
+            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Step by step...</p>
           </div>
           <button
             onClick={() => setShowTemplateModal(true)}

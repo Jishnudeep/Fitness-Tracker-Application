@@ -88,7 +88,7 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h2 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Nutrition</h2>
-            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Sleek Entry</p>
+            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Fuel Your Engine!</p>
           </div>
           <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-zinc-400">
             <Utensils size={20} />
