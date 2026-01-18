@@ -10,8 +10,9 @@ import { Signup } from './components/Signup';
 import { api } from './services/api';
 import {
   getTheme, saveTheme,
-  getUser, clearUser
+  getUser, clearUser, saveUser
 } from './services/storage';
+import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -32,6 +33,24 @@ const App: React.FC = () => {
       setUser(currentUser);
     }
 
+    // Supabase Auth Listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email,
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+          isLoggedIn: true
+        }
+        setUser(userData);
+        saveUser(userData);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        clearUser();
+        setAuthView('login');
+      }
+    });
+
     // Load theme
     const savedTheme = getTheme();
     setTheme(savedTheme);
@@ -42,7 +61,10 @@ const App: React.FC = () => {
       if (e.detail) setView(e.detail as ViewState);
     };
     window.addEventListener('changeView', handleViewChange);
-    return () => window.removeEventListener('changeView', handleViewChange);
+    return () => {
+      window.removeEventListener('changeView', handleViewChange);
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   // Fetch data when user logs in
@@ -82,13 +104,12 @@ const App: React.FC = () => {
     setUser(newUser);
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    clearUser();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // State clearing is handled by the auth listener
     setView('dashboard');
     setWorkouts([]);
     setMeals([]);
-    setAuthView('login');
   };
 
   const handleSaveWorkout = async (workout: Workout) => {

@@ -1,5 +1,6 @@
 import { Workout, Meal, User, WorkoutTemplate, FoodItem, ExercisePerformance } from '../types';
 import * as storage from './storage';
+import { supabase } from './supabase';
 
 // Configuration
 // 1. Set this to true when your Python backend is running
@@ -21,36 +22,50 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const api = {
     // --- Auth ---
-    async login(username: string): Promise<User> {
-        if (ENABLE_BACKEND) {
-            const res = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            return handleResponse(res);
-        }
+    async login(email: string, password: string): Promise<User> {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
 
-        // Mock Login
-        await delay(800);
-        const user: User = { username, isLoggedIn: true };
+        if (error) throw error;
+        if (!data.user) throw new Error('No user data returned');
+
+        const user: User = {
+            id: data.user.id,
+            email: data.user.email,
+            username: data.user.user_metadata?.username || email.split('@')[0], // Fallback to email prefix
+            isLoggedIn: true
+        };
+
         storage.saveUser(user);
         return user;
     },
 
-    async signup(username: string): Promise<User> {
-        if (ENABLE_BACKEND) {
-            const res = await fetch(`${API_URL}/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            return handleResponse(res);
-        }
+    async signup(email: string, password: string, username: string): Promise<User> {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    username,
+                    full_name: username, // Populates 'Display Name' in Supabase Dashboard
+                    display_name: username,
+                },
+            },
+        });
 
-        // Mock Signup
-        await delay(1000);
-        const user: User = { username, isLoggedIn: true };
+        if (error) throw error;
+        if (!data.user) throw new Error('No user data returned');
+
+        // Note: functionality depends on email confirmation settings in Supabase
+        const user: User = {
+            id: data.user.id,
+            email: data.user.email,
+            username: username,
+            isLoggedIn: true // You might want to check data.session if email confirmation is required
+        };
+
         storage.saveUser(user);
         return user;
     },

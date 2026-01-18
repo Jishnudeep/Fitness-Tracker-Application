@@ -79,6 +79,8 @@ export interface ChatMessage {
 }
 
 export interface User {
+  id: string;
+  email?: string;
   username: string;
   isLoggedIn: boolean;
 }

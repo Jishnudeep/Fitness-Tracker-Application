@@ -10,6 +10,7 @@ interface SignupProps {
 }
 
 export const Signup: React.FC<SignupProps> = ({ onSignup, onBackToLogin }) => {
+    const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,6 +21,12 @@ export const Signup: React.FC<SignupProps> = ({ onSignup, onBackToLogin }) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
+
+        if (!email.includes('@')) {
+            setError('Please enter a valid email');
+            setIsLoading(false);
+            return;
+        }
 
         if (username.trim().length < 3) {
             setError('Username must be at least 3 characters');
@@ -40,7 +47,7 @@ export const Signup: React.FC<SignupProps> = ({ onSignup, onBackToLogin }) => {
         }
 
         try {
-            const user = await api.signup(username);
+            const user = await api.signup(email, password, username);
             onSignup(user);
         } catch (err: any) {
             setError(err.message || 'Signup failed');
@@ -70,6 +77,21 @@ export const Signup: React.FC<SignupProps> = ({ onSignup, onBackToLogin }) => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1.5 text-zinc-600 dark:text-zinc-400">Email</label>
+                            <div className="relative">
+                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full pl-10 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-1 focus:ring-zinc-500 outline-none text-zinc-900 dark:text-zinc-100 transition-all"
+                                    placeholder="Enter your email"
+                                    autoComplete="email"
+                                />
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium mb-1.5 text-zinc-600 dark:text-zinc-400">Username</label>
                             <div className="relative">
