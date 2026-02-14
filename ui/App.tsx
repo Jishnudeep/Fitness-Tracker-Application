@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, Workout, Meal, User } from './types';
-import { LayoutDashboard, Dumbbell, Utensils, MessageSquare, Moon, Sun, Plus, LogOut, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Dumbbell, Utensils, MessageSquare, Moon, Sun, Plus, LogOut, Loader2, Activity } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { WorkoutLog } from './components/WorkoutLog';
 import { CalorieLog } from './components/CalorieLog';
+import { CardioLog } from './components/CardioLog';
 import { AIChat } from './components/AIChat';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
@@ -36,14 +37,18 @@ const App: React.FC = () => {
     // Supabase Auth Listener
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email,
-          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
-          isLoggedIn: true
+        // Only update if user is different to avoid re-fetches on focus
+        const currentStoredUser = getUser();
+        if (!currentStoredUser || currentStoredUser.id !== session.user.id) {
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email,
+            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+            isLoggedIn: true
+          }
+          setUser(userData);
+          saveUser(userData);
         }
-        setUser(userData);
-        saveUser(userData);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         clearUser();
@@ -140,6 +145,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveCardio = async (cardio: Workout) => {
+    setIsSaving(true);
+    try {
+      const savedCardio = await api.saveWorkout(cardio);
+      setWorkouts(prev => [savedCardio, ...prev]);
+      setView('dashboard');
+    } catch (error) {
+      console.error("Failed to save cardio", error);
+      alert("Failed to save cardio session. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const renderView = () => {
     if (isLoadingData) {
       return (
@@ -176,6 +195,18 @@ const App: React.FC = () => {
           )}
         </div>
       );
+      case 'cardio': return (
+        <div className="max-w-2xl mx-auto">
+          {isSaving ? (
+            <div className="flex flex-col items-center justify-center h-64 text-zinc-500 animate-in fade-in">
+              <Loader2 size={32} className="animate-spin mb-4" />
+              <p className="text-sm font-medium">Saving cardio...</p>
+            </div>
+          ) : (
+            <CardioLog onSave={handleSaveCardio} />
+          )}
+        </div>
+      );
       case 'ai': return (
         <div className="max-w-4xl mx-auto">
           <AIChat workouts={workouts} meals={meals} />
@@ -188,6 +219,7 @@ const App: React.FC = () => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'workout', label: 'Workouts', icon: Dumbbell },
+    { id: 'cardio', label: 'Cardio', icon: Activity },
     { id: 'calories', label: 'Calories', icon: Utensils },
     { id: 'ai', label: 'AI Chat', icon: MessageSquare },
   ];
@@ -281,17 +313,17 @@ const App: React.FC = () => {
               <span className="text-[10px] font-medium">Lift</span>
             </button>
 
-            {/* Center Space for Floating Button */}
-            <div className="w-12"></div>
-
-            {/* Floating Action Button for Mobile */}
             <button
-              onClick={() => setView('workout')}
+              onClick={() => setView('cardio')}
               disabled={isSaving}
-              className="absolute left-1/2 -translate-x-1/2 -top-10 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black p-4 rounded-full shadow-lg shadow-zinc-500/20 hover:scale-105 transition-transform active:scale-95 border-4 border-white dark:border-dark disabled:opacity-70"
+              className={`flex flex-col items-center gap-1 transition-colors ${view === 'cardio' ? 'text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
             >
-              <Plus size={24} strokeWidth={3} />
+              <Activity size={24} strokeWidth={view === 'cardio' ? 2.5 : 2} />
+              <span className="text-[10px] font-medium">Move</span>
             </button>
+
+            {/* center dummy view for layout if needed, but we can just use 5 items */}
+            {/* Removing absolute plus button to make room for 5 tabs in mobile nav */}
 
             <button
               onClick={() => setView('calories')}

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Workout, Meal } from '../types';
+import { Workout, Meal, MuscleGroup } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
-import { Activity, Flame, Dumbbell, Calendar, Weight, Clock, ChevronDown, ChevronLeft, ChevronRight, Target } from 'lucide-react';
+import { Activity, Flame, Dumbbell, Calendar, Weight, Clock, ChevronDown, ChevronLeft, ChevronRight, Target, Footprints } from 'lucide-react';
 import { DailyView } from './DailyView';
 import { Button } from './ui/Button';
 
@@ -86,7 +86,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
     const calories = todayMeals.reduce((sum, m) => sum + m.calories, 0);
     const protein = todayMeals.reduce((sum, m) => sum + (m.protein || 0), 0);
     const duration = todayWorkouts.reduce((sum, w) => sum + (w.durationMinutes || 0), 0);
-    return { calories, protein, duration, sessions: todayWorkouts.length };
+    const cardioMinutes = todayWorkouts.reduce((sum, w) => sum + w.exercises.reduce((exAcc, ex) => {
+      if (ex.muscleGroup !== MuscleGroup.CARDIO) return exAcc;
+      return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.timeSeconds || 0), 0);
+    }, 0), 0) / 60;
+    const cardioBurned = todayWorkouts.reduce((sum, w) => sum + w.exercises.reduce((exAcc, ex) => {
+      return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.caloriesBurnt || 0), 0);
+    }, 0), 0);
+    const steps = todayWorkouts.reduce((sum, w) => sum + w.exercises.reduce((exAcc, ex) => {
+      return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.steps || 0), 0);
+    }, 0), 0);
+    return { calories, protein, duration, sessions: todayWorkouts.length, cardioMinutes, cardioBurned, steps };
   }, [workouts, meals, todayStr]);
 
   const chartData = useMemo(() => {
@@ -94,25 +104,50 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
       const dailyMeals = filteredMeals.filter(m => m.date.startsWith(date));
       const calories = dailyMeals.reduce((sum, m) => sum + m.calories, 0);
       const dailyWorkouts = filteredWorkouts.filter(w => w.date.startsWith(date));
-      const volume = dailyWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.weight * s.reps), 0), 0), 0);
+      const volume = dailyWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+        if (ex.muscleGroup === MuscleGroup.CARDIO) return exAcc;
+        return exAcc + ex.sets.reduce((sAcc, s) => sAcc + ((s.weight || 0) * (s.reps || 0)), 0);
+      }, 0), 0);
       const duration = dailyWorkouts.reduce((acc, w) => acc + (w.durationMinutes || 0), 0);
+      const cardioMinutes = dailyWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+        if (ex.muscleGroup !== MuscleGroup.CARDIO) return exAcc;
+        return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.timeSeconds || 0), 0);
+      }, 0), 0) / 60;
+      const cardioBurned = dailyWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+        return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.caloriesBurnt || 0), 0);
+      }, 0), 0);
+      const steps = dailyWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+        return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.steps || 0), 0);
+      }, 0), 0);
       return {
         date,
         shortDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         calories,
         volume,
         duration,
+        cardioMinutes,
+        cardioBurned,
+        steps,
         isToday: date === todayStr
       };
     });
   }, [filteredMeals, filteredWorkouts, dateLabels, todayStr]);
 
   const stats = useMemo(() => {
-    const totalVolume = filteredWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.weight * s.reps), 0), 0), 0);
+    const totalVolume = filteredWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+      if (ex.muscleGroup === MuscleGroup.CARDIO) return exAcc;
+      return exAcc + ex.sets.reduce((sAcc, s) => sAcc + ((s.weight || 0) * (s.reps || 0)), 0);
+    }, 0), 0);
     const totalDuration = filteredWorkouts.reduce((acc, w) => acc + (w.durationMinutes || 0), 0);
+    const totalCardioBurned = filteredWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+      return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.caloriesBurnt || 0), 0);
+    }, 0), 0);
+    const totalSteps = filteredWorkouts.reduce((acc, w) => acc + w.exercises.reduce((exAcc, ex) => {
+      return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.steps || 0), 0);
+    }, 0), 0);
     const activeDays = new Set([...filteredWorkouts.map(w => w.date.split('T')[0]), ...filteredMeals.map(m => m.date.split('T')[0])]).size;
     const totalCalories = filteredMeals.reduce((acc, m) => acc + m.calories, 0);
-    return { totalWorkouts: filteredWorkouts.length, totalVolume, activeDays, totalDuration, totalCalories };
+    return { totalWorkouts: filteredWorkouts.length, totalVolume, activeDays, totalDuration, totalCalories, totalCardioBurned, totalSteps };
   }, [filteredWorkouts, filteredMeals]);
 
   return (
@@ -127,14 +162,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
           </p>
         </div>
 
-        <div className="flex gap-12">
+        <div className="flex gap-10">
           {[
-            { label: 'Kcal', val: todayStats.calories, color: 'text-zinc-900 dark:text-white' },
-            { label: 'Protein', val: todayStats.protein, color: 'text-zinc-500' },
-            { label: 'Minutes', val: todayStats.duration, color: 'text-zinc-500' }
+            { label: 'Kcal In', val: todayStats.calories, color: 'text-zinc-900 dark:text-white' },
+            { label: 'Kcal Out (Gym)', val: Math.round(todayStats.cardioBurned), color: 'text-zinc-500' },
+            { label: 'Steps', val: todayStats.steps.toLocaleString(), color: 'text-zinc-500', icon: Footprints },
+            { label: 'Cardio Min', val: Math.round(todayStats.cardioMinutes), color: 'text-zinc-500' },
+            { label: 'Duration', val: todayStats.duration, color: 'text-zinc-500' }
           ].map((s, i) => (
             <div key={i} className="text-center">
-              <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">{s.label}</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1 flex items-center justify-center gap-1">
+                {s.icon && <s.icon size={10} />}
+                {s.label}
+              </p>
               <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
             </div>
           ))}
@@ -171,8 +211,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
           {/* Charts - Monochrome Minimalist */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {[
-              { id: 'vol', title: 'Volume (kg)', key: 'volume', color: '#111', type: 'area' },
-              { id: 'cal', title: 'Calories', key: 'calories', color: '#111', type: 'bar' }
+              { id: 'vol', title: 'Strength Volume (kg)', key: 'volume', color: '#111', type: 'area' },
+              { id: 'cal', title: 'Caloric Intake', key: 'calories', color: '#111', type: 'bar' },
+              { id: 'steps', title: 'Steps Tracked', key: 'steps', color: '#111', type: 'bar' },
+              { id: 'cardio_min', title: 'Cardio (Min)', key: 'cardioMinutes', color: '#111', type: 'bar' },
+              { id: 'cardio_cal', title: 'Kcal Burned (Cardio)', key: 'cardioBurned', color: '#111', type: 'area' }
             ].map(chart => (
               <div key={chart.id} className="bg-white dark:bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-50 dark:border-zinc-900">
                 <h5 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-8">{chart.title}</h5>

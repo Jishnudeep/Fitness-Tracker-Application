@@ -1,6 +1,6 @@
 import React from 'react';
-import { Workout, Meal } from '../types';
-import { Dumbbell, Utensils, Clock, Flame, Info, Apple, Weight } from 'lucide-react';
+import { Workout, Meal, MuscleGroup } from '../types';
+import { Dumbbell, Utensils, Clock, Flame, Info, Apple, Weight, Footprints } from 'lucide-react';
 
 interface DailyViewProps {
     date: string;
@@ -26,7 +26,20 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
 
     const totalWeight = dailyWorkouts.reduce((acc, w) => {
         return acc + w.exercises.reduce((exAcc, ex) => {
-            return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.weight * s.reps), 0);
+            if (ex.muscleGroup === MuscleGroup.CARDIO) return exAcc;
+            return exAcc + ex.sets.reduce((sAcc, s) => sAcc + ((s.weight || 0) * (s.reps || 0)), 0);
+        }, 0);
+    }, 0);
+
+    const totalBurned = dailyWorkouts.reduce((acc, w) => {
+        return acc + w.exercises.reduce((exAcc, ex) => {
+            return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.caloriesBurnt || 0), 0);
+        }, 0);
+    }, 0);
+
+    const totalSteps = dailyWorkouts.reduce((acc, w) => {
+        return acc + w.exercises.reduce((exAcc, ex) => {
+            return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.steps || 0), 0);
         }, 0);
     }, 0);
 
@@ -95,7 +108,7 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
 
                 {dailyWorkouts.length > 0 ? (
                     <div className="space-y-10">
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
                                 <Clock size={20} className="text-zinc-400" />
                                 <div>
@@ -108,6 +121,20 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
                                 <div>
                                     <p className="text-xl font-black text-zinc-900 dark:text-white">{totalWeight.toLocaleString()} kg</p>
                                     <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Volume</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
+                                <Flame size={20} className="text-zinc-400" />
+                                <div>
+                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalBurned.toLocaleString()} kcal</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Burned</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
+                                <Footprints size={20} className="text-zinc-400" />
+                                <div>
+                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalSteps.toLocaleString()}</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Steps</p>
                                 </div>
                             </div>
                         </div>
@@ -127,11 +154,19 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
                                                     <span className="text-[8px] font-black px-2 py-1 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 rounded-full uppercase tracking-wider">{ex.muscleGroup}</span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {ex.sets.map((s, idx) => (
-                                                        <div key={s.id} className="text-[9px] font-bold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50 text-zinc-500">
-                                                            <span className="text-zinc-300 mr-1">{idx + 1}</span> {s.weight}kg x {s.reps}
-                                                        </div>
-                                                    ))}
+                                                    {ex.sets.map((s, idx) => {
+                                                        const isCardio = ex.muscleGroup === MuscleGroup.CARDIO;
+                                                        return (
+                                                            <div key={s.id} className="text-[9px] font-bold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50 text-zinc-500">
+                                                                <span className="text-zinc-300 mr-1">{idx + 1}</span>
+                                                                {isCardio ? (
+                                                                    `${s.speed || 0}km/h · ${s.incline || 0}inc · ${s.timeSeconds || 0}s · ${s.caloriesBurnt || 0}kcal ${s.steps ? `· ${s.steps} steps` : ''}`
+                                                                ) : (
+                                                                    `${s.weight || 0}kg x ${s.reps || 0}`
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         ))}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Workout, Exercise, Set, MuscleGroup, WorkoutTemplate, ExercisePerformance } from '../types';
-import { Plus, Trash2, Save, Dumbbell, Calendar, Clock, Timer, CheckCircle, ChevronDown, List, Star, Play, X } from 'lucide-react';
+import { Plus, Trash2, Save, Dumbbell, Calendar, Clock, Timer, CheckCircle, ChevronDown, List, Star, Play, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { api } from '../services/api';
 
@@ -8,7 +8,7 @@ interface WorkoutLogProps {
   onSave: (workout: Workout) => void;
 }
 
-const MUSCLE_GROUPS = Object.values(MuscleGroup);
+const MUSCLE_GROUPS = Object.values(MuscleGroup).filter(mg => mg !== MuscleGroup.CARDIO);
 
 export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
   const [name, setName] = useState('');
@@ -18,9 +18,13 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
   const [duration, setDuration] = useState<number | ''>('');
   const [notes, setNotes] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
 
   // UI states
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   const [recentPerformances, setRecentPerformances] = useState<Record<string, ExercisePerformance>>({});
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [activeSelect, setActiveSelect] = useState<string | null>(null);
@@ -31,13 +35,32 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
   const [timerInput, setTimerInput] = useState(90);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const loadTemplates = async () => {
+  const loadTemplates = async () => {
+    setIsLoadingTemplates(true);
+    setTemplateError(null);
+    try {
       const data = await api.getTemplates();
-      setTemplates(data);
-    };
+      // Filter out templates that are purely cardio
+      const liftingTemplates = data.filter(t => !t.exercises.every(te => te.muscleGroup === MuscleGroup.CARDIO));
+      setTemplates(liftingTemplates);
+    } catch (err) {
+      setTemplateError("Failed to load templates");
+      console.error(err);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
     loadTemplates();
   }, []);
+
+  // Refresh templates when modal opens
+  useEffect(() => {
+    if (showTemplateModal) {
+      loadTemplates();
+    }
+  }, [showTemplateModal]);
 
   useEffect(() => {
     if (startTime && endTime) {
@@ -90,17 +113,25 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
 
   const applyTemplate = (template: WorkoutTemplate) => {
     setName(template.name);
-    const templateExercises: Exercise[] = template.exercises.map(te => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: te.name,
-      muscleGroup: te.muscleGroup,
-      sets: Array.from({ length: te.defaultSets }).map((_, i) => ({
-        id: Math.random().toString(36).substr(2, 9) + '-' + i,
-        reps: 0,
-        weight: 0,
-        completed: false
-      }))
-    }));
+    setSelectedTemplateId(template.id);
+    const templateExercises: Exercise[] = template.exercises
+      .filter(te => te.muscleGroup !== MuscleGroup.CARDIO)
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .map(te => ({
+        id: Math.random().toString(36).substr(2, 9),
+        name: te.name,
+        muscleGroup: te.muscleGroup,
+        sets: Array.from({ length: te.defaultSets }).map((_, i) => ({
+          id: Math.random().toString(36).substr(2, 9) + '-' + i,
+          reps: te.defaultReps,
+          weight: te.defaultWeight,
+          speed: te.defaultSpeed,
+          incline: te.defaultIncline,
+          timeSeconds: te.defaultTimeSeconds,
+          caloriesBurnt: te.defaultCaloriesBurnt || 60,
+          completed: false
+        }))
+      }));
     setExercises(templateExercises);
     setShowTemplateModal(false);
   };
@@ -109,8 +140,17 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
     setExercises([...exercises, {
       id: Date.now().toString(),
       name: '',
-      muscleGroup: MuscleGroup.OTHER,
-      sets: [{ id: Date.now().toString() + '-1', reps: 0, weight: 0, completed: false }]
+      muscleGroup: MuscleGroup.CHEST,
+      sets: [{
+        id: Date.now().toString() + '-1',
+        reps: 0,
+        weight: 0,
+        speed: 0,
+        incline: 0,
+        timeSeconds: 0,
+        caloriesBurnt: 60,
+        completed: false
+      }]
     }]);
   };
 
@@ -129,6 +169,10 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
             id: Date.now().toString(),
             reps: lastSet ? lastSet.reps : 0,
             weight: lastSet ? lastSet.weight : 0,
+            speed: lastSet ? lastSet.speed : 0,
+            incline: lastSet ? lastSet.incline : 0,
+            timeSeconds: lastSet ? lastSet.timeSeconds : 0,
+            caloriesBurnt: lastSet ? lastSet.caloriesBurnt : 60,
             completed: false
           }]
         };
@@ -154,10 +198,14 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
       date: new Date(date).toISOString(),
       durationMinutes: Number(duration) || 0,
       exercises,
-      notes
-    });
+      notes,
+      ...(selectedTemplateId && { template_id: selectedTemplateId }),
+      ...(saveAsTemplate && { save_as_template: true })
+    } as any);
     setExercises([]);
     setName('');
+    setSelectedTemplateId(null);
+    setSaveAsTemplate(false);
   };
 
   return (
@@ -271,25 +319,29 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
               </div>
 
               <div className="p-6 space-y-2">
-                {exercise.sets.map((set, sIndex) => (
-                  <div key={set.id} className="grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-1 text-[10px] font-black text-zinc-300">{sIndex + 1}</div>
-                    <div className="col-span-4">
-                      <input type="number" value={set.weight || ''} onChange={(e) => updateSet(exercise.id, set.id, 'weight', Number(e.target.value))} className="w-full bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl p-2.5 text-center text-xs font-black" placeholder="kg" />
+                {exercise.sets.map((set, sIndex) => {
+                  return (
+                    <div key={set.id} className="grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-1 text-[10px] font-black text-zinc-300">{sIndex + 1}</div>
+
+                      <div className="col-span-4">
+                        <input type="number" value={set.weight || ''} onChange={(e) => updateSet(exercise.id, set.id, 'weight', Number(e.target.value))} className="w-full bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl p-2.5 text-center text-xs font-black" placeholder="kg" />
+                      </div>
+                      <div className="col-span-4">
+                        <input type="number" value={set.reps || ''} onChange={(e) => updateSet(exercise.id, set.id, 'reps', Number(e.target.value))} className="w-full bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl p-2.5 text-center text-xs font-black" placeholder="reps" />
+                      </div>
+
+                      <div className="col-span-3 flex justify-end">
+                        <button
+                          onClick={() => updateSet(exercise.id, set.id, 'completed', !set.completed)}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${set.completed ? 'bg-zinc-900 dark:bg-white text-white dark:text-black scale-105' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-200 dark:text-zinc-700'}`}
+                        >
+                          <CheckCircle size={18} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="col-span-4">
-                      <input type="number" value={set.reps || ''} onChange={(e) => updateSet(exercise.id, set.id, 'reps', Number(e.target.value))} className="w-full bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl p-2.5 text-center text-xs font-black" placeholder="reps" />
-                    </div>
-                    <div className="col-span-3 flex justify-end">
-                      <button
-                        onClick={() => updateSet(exercise.id, set.id, 'completed', !set.completed)}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${set.completed ? 'bg-zinc-900 dark:bg-white text-white dark:text-black scale-105' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-200 dark:text-zinc-700'}`}
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <button
                   onClick={() => addSet(exercise.id)}
@@ -319,6 +371,18 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
           placeholder="Session notes..."
           className="w-full p-6 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] text-xs font-medium min-h-[120px] outline-none placeholder:opacity-30"
         />
+        <div className="flex items-center gap-3 px-6 py-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+          <input
+            type="checkbox"
+            id="saveAsTemplate"
+            checked={saveAsTemplate}
+            onChange={(e) => setSaveAsTemplate(e.target.checked)}
+            className="w-5 h-5 rounded-lg border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+          />
+          <label htmlFor="saveAsTemplate" className="text-xs font-black uppercase tracking-widest text-zinc-500 cursor-pointer">
+            Save as new template
+          </label>
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <Button variant="secondary" onClick={handleSave} className="py-5 rounded-2xl font-black text-sm uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800 dark:text-white border-0">
             Finish
@@ -336,12 +400,29 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
           <div className="relative bg-white dark:bg-zinc-950 w-full max-w-sm rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-8 shadow-2xl">
             <h3 className="text-2xl font-black mb-6 tracking-tighter">Templates</h3>
             <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2">
-              {templates.map(t => (
-                <button key={t.id} onClick={() => applyTemplate(t)} className="w-full p-5 bg-zinc-50 dark:bg-zinc-900 rounded-3xl text-left border border-zinc-100 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all">
-                  <span className="text-sm font-black uppercase block">{t.name}</span>
-                  <span className="text-[10px] font-bold text-zinc-400 mt-1 uppercase opacity-60">{t.exercises.length} Exercises</span>
-                </button>
-              ))}
+              {isLoadingTemplates ? (
+                <div className="py-10 flex flex-col items-center justify-center gap-4 text-zinc-400">
+                  <Loader2 className="animate-spin" size={24} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Loading...</span>
+                </div>
+              ) : templateError ? (
+                <div className="py-10 text-center space-y-4">
+                  <p className="text-xs font-bold text-red-500">{templateError}</p>
+                  <button onClick={loadTemplates} className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors underline">Try Again</button>
+                </div>
+              ) : templates.length === 0 ? (
+                <div className="py-10 text-center space-y-4">
+                  <p className="text-xs font-bold text-zinc-500">No templates found</p>
+                  <button onClick={loadTemplates} className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors underline">Refresh</button>
+                </div>
+              ) : (
+                templates.map(t => (
+                  <button key={t.id} onClick={() => applyTemplate(t)} className="w-full p-5 bg-zinc-50 dark:bg-zinc-900 rounded-3xl text-left border border-zinc-100 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all">
+                    <span className="text-sm font-black uppercase block">{t.name}</span>
+                    <span className="text-[10px] font-bold text-zinc-400 mt-1 uppercase opacity-60">{(t.exercises || []).length} Exercises</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>

@@ -11,8 +11,13 @@ export enum MuscleGroup {
 
 export interface Set {
   id: string;
-  reps: number;
-  weight: number;
+  reps?: number;
+  weight?: number;
+  speed?: number;
+  incline?: number;
+  timeSeconds?: number;
+  caloriesBurnt?: number;
+  steps?: number;
   completed: boolean;
 }
 
@@ -30,22 +35,42 @@ export interface Workout {
   durationMinutes: number;
   exercises: Exercise[];
   notes?: string;
+  template_id?: string;
+  save_as_template?: boolean;
+}
+
+export interface TemplateExercise {
+  id?: string;
+  exercise_id: string;
+  name: string;
+  muscleGroup: MuscleGroup;
+  defaultSets: number;
+  defaultReps?: number;
+  defaultWeight?: number;
+  defaultSpeed?: number;
+  defaultIncline?: number;
+  defaultTimeSeconds?: number;
+  defaultCaloriesBurnt?: number;
+  defaultSteps?: number;
+  orderIndex: number;
 }
 
 export interface WorkoutTemplate {
   id: string;
   name: string;
-  exercises: {
-    name: string;
-    muscleGroup: MuscleGroup;
-    defaultSets: number;
-  }[];
+  description?: string;
+  exercises: TemplateExercise[];
 }
 
 export interface ExercisePerformance {
   exerciseName: string;
   lastWeight: number;
   lastReps: number;
+  lastSpeed?: number;
+  lastIncline?: number;
+  lastTimeSeconds?: number;
+  lastCaloriesBurnt?: number;
+  lastSteps?: number;
   lastDate: string;
 }
 
@@ -85,4 +110,4 @@ export interface User {
   isLoggedIn: boolean;
 }
 
-export type ViewState = 'dashboard' | 'workout' | 'calories' | 'ai';
+export type ViewState = 'dashboard' | 'workout' | 'cardio' | 'calories' | 'ai';
