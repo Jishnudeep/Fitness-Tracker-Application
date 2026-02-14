@@ -1,97 +1,94 @@
-# TheCutRoute - Fitness Tracker Application
+# ✂️ TheCutRoute
 
-TheCutRoute is a comprehensive workout and calorie tracker with detailed lift logging, progress visualization, and an integrated AI fitness assistant powered by Gemini.
+**TheCutRoute** is a premium, minimalist fitness tracking ecosystem designed for performance. It combines precise lift logging, dedicated cardio tracking, and advanced nutrition management with an integrated AI Fitness Assistant powered by **Google Gemini**.
 
-## Project Structure
+![TheCutRoute Banner](https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6)
 
-- `ui/`: The frontend application built with React, Vite, and Tailwind CSS.
-- `backend/`: The backend API built with FastAPI and Python.
+## 🚀 Key Features
 
-## Status
+-   **Precision Lifting**: Log every set, rep, and KG with an interface designed for the gym floor.
+-   **dedicated Cardio**: Specialized tracking for speed, incline, and **Step Tracking**.
+-   **Smart Templates**: Save your routines and watch them evolve with your progress (Progressive Overload).
+-   **Macro Mastery**: Quick-add meals with detailed calorie and protein breakdowns.
+-   **AI Intelligence**: An on-demand Fitness Assistant powered by Gemini for form tips, meal ideas, and motivation.
+-   **Visual Insights**: Clean, monochrome charts to track your volume, caloric intake, and step trends.
 
-🚀 **Backend Under Development**: The application is transitioning from local storage to a dedicated FastAPI backend for persistent data storage and user authentication.
+---
 
-## Getting Started
+## 🏗️ Architecture
 
-### Prerequisites
+The project is split into two main tiers:
 
-- **Frontend**: Node.js (v18 or higher), npm or yarn
-- **Backend**: Python (v3.10 or higher)
+-   **/ui**: A high-performance React + Vite frontend styled with Tailwind CSS.
+-   **/backend**: A robust FastAPI + Supabase backend designed for high concurrency and speed.
 
-### Installation
+---
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Jishnudeep/Fitness-Tracker-Application.git
-   cd Fitness-Tracker-Application
-   ```
+## 🛠️ Setup & Installation
 
-2. **Frontend Setup**:
-   ```bash
-   cd ui
-   npm install
-   ```
-   Create a `.env.local` file in the `ui/` directory and add your Gemini API key:
-   ```
-   GEMINI_API_KEY=your_api_key_here
-   ```
+### 1. Prerequisites
+-   [Python 3.10+](https://www.python.org/downloads/)
+-   [Node.js 18+](https://nodejs.org/)
+-   [Supabase Account](https://supabase.com/)
 
-3. **Backend Setup**:
-
-   **Using `uv` (Recommended)**:
-   ```bash
-   cd ../backend
-   uv venv
-   uv pip install fastapi uvicorn
-   ```
-
-   **Using standard `venv`**:
-   ```bash
-   cd ../backend
-   python -m venv venv
-   # Windows
-   .\venv\Scripts\activate
-   # macOS/Linux
-   source venv/bin/activate
-   pip install fastapi uvicorn
-   ```
-
-## Running the Application
-
-### 1. Start the Backend
-
-**Using `uv`**:
+### 2. Backend Setup
 ```bash
 cd backend
-uv run uvicorn main:app --reload
+# Recommended: Create a virtual environment
+python -m venv .venv
+source .venv/bin/activate # Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt # Or use 'uv' for faster setup
+```
+Set up your `.env` in the `backend/` folder:
+```env
+SUPABASE_URL=your_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-**Using standard `venv`**:
-```bash
-cd backend
-# Activate venv if not already active
-.\venv\Scripts\activate
-uvicorn main:app --reload
-```
+### 3. Database Initialization
+Run the consolidated script in your Supabase SQL Editor:
+-   `backend/migrations/full_schema.sql`
 
-### 2. Start the Frontend
+### 4. Frontend Setup
 ```bash
 cd ui
-npm run dev
+npm install
+```
+Set up your `.env.local` in the `ui/` folder:
+```env
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+GEMINI_API_KEY=your_google_ai_studio_key
 ```
 
-## Features
+---
 
-- **Workout Logging**: Track exercises, sets, reps, and weights.
-- **Calorie Tracking**: Log meals and monitor daily caloric intake.
-- **AI Fitness Coach**: Chat with an AI assistant for workout suggestions and nutrition advice.
-- **Dashboard**: Visualize your progress with interactive charts.
-- **Dark Mode**: Sleek, modern interface with dark mode support.
+## 🚦 Running Locally
 
-## Technologies Used
+1.  **Start the Backend**:
+    ```bash
+    cd backend
+    uvicorn app.main:app --reload
+    ```
+2.  **Start the Frontend**:
+    ```bash
+    cd ui
+    npm run dev
+    ```
 
-- **Frontend**: React, TypeScript, Vite, Tailwind CSS
-- **Backend**: FastAPI, Python, Uvicorn, [uv](https://github.com/astral-sh/uv) (package manager)
-- **Icons**: Lucide React
-- **Charts**: Recharts
-- **AI**: Google Gemini AI
+---
+
+## 🛠️ Tech Stack
+
+-   **Frontend**: React, TypeScript, Vite, Tailwind CSS, Recharts, Lucide Icons.
+-   **Backend**: FastAPI, Pydantic, Supabase-py.
+-   **Database**: PostgreSQL (via Supabase) with Row Level Security (RLS).
+-   **AI**: Google Gemini Pro API.
+
+---
+
+## 📄 License & Credits
+Built with focus by [Jishnudeep](https://github.com/Jishnudeep).
+Inspired by the pursuit of the perfect cut. ✂️
