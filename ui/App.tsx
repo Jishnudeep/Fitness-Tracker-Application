@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, Workout, Meal, User } from './types';
-import { LayoutDashboard, Dumbbell, Utensils, MessageSquare, Moon, Sun, Plus, LogOut, Loader2, Activity } from 'lucide-react';
+import { LayoutDashboard, Dumbbell, Utensils, MessageSquare, Moon, Sun, Plus, LogOut, Loader2, Activity, Target } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { WorkoutLog } from './components/WorkoutLog';
 import { CalorieLog } from './components/CalorieLog';
@@ -8,6 +8,7 @@ import { CardioLog } from './components/CardioLog';
 import { AIChat } from './components/AIChat';
 import { Login } from './components/Login';
 import { Signup } from './components/Signup';
+import { GoalMenu } from './components/GoalMenu';
 import { api } from './services/api';
 import {
   getTheme, saveTheme,
@@ -212,6 +213,7 @@ const App: React.FC = () => {
           <AIChat workouts={workouts} meals={meals} />
         </div>
       );
+      case 'goals': return <GoalMenu />;
       default: return <Dashboard workouts={workouts} meals={meals} />;
     }
   };
@@ -221,6 +223,7 @@ const App: React.FC = () => {
     { id: 'workout', label: 'Workouts', icon: Dumbbell },
     { id: 'cardio', label: 'Cardio', icon: Activity },
     { id: 'calories', label: 'Calories', icon: Utensils },
+    { id: 'goals', label: 'Goals', icon: Target },
     { id: 'ai', label: 'AI Chat', icon: MessageSquare },
   ];
 

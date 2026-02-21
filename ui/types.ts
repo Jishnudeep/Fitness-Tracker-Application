@@ -110,4 +110,4 @@ export interface User {
   isLoggedIn: boolean;
 }
 
-export type ViewState = 'dashboard' | 'workout' | 'cardio' | 'calories' | 'ai';
+export type ViewState = 'dashboard' | 'workout' | 'cardio' | 'calories' | 'ai' | 'goals';

@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { Activity, Flame, Dumbbell, Calendar, Weight, Clock, ChevronDown, ChevronLeft, ChevronRight, Target, Footprints } from 'lucide-react';
 import { DailyView } from './DailyView';
 import { Button } from './ui/Button';
+import { api } from '../services/api';
 
 interface DashboardProps {
   workouts: Workout[];
@@ -30,9 +31,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
   });
   const [selectedDay, setSelectedDay] = useState(todayStr);
 
+
   const goToToday = () => {
     setSelectedDay(todayStr);
     setActiveTab('daily');
+  };
+
+  const [review, setReview] = useState<{ activity?: string, diet?: string } | null>(null);
+  const [reviewing, setReviewing] = useState(false);
+
+  const handleReviewDay = async (date: string) => {
+    setReviewing(true);
+    setReview(null);
+    try {
+      const data = await api.reviewDay(date);
+      setReview(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setReviewing(false);
+    }
   };
 
   // Centered Date Logic for "Week"
@@ -209,13 +227,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
           </div>
 
           {/* Charts - Monochrome Minimalist */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { id: 'vol', title: 'Strength Volume (kg)', key: 'volume', color: '#111', type: 'area' },
               { id: 'cal', title: 'Caloric Intake', key: 'calories', color: '#111', type: 'bar' },
               { id: 'steps', title: 'Steps Tracked', key: 'steps', color: '#111', type: 'bar' },
               { id: 'cardio_min', title: 'Cardio (Min)', key: 'cardioMinutes', color: '#111', type: 'bar' },
-              { id: 'cardio_cal', title: 'Kcal Burned (Cardio)', key: 'cardioBurned', color: '#111', type: 'area' }
+              { id: 'cardio_cal', title: 'Kcal Burned (Cardio)', key: 'cardioBurned', color: '#111', type: 'area' },
+              { id: 'duration', title: 'Minutes Lifted', key: 'duration', color: '#111', type: 'bar' }
             ].map(chart => (
               <div key={chart.id} className="bg-white dark:bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-50 dark:border-zinc-900">
                 <h5 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-8">{chart.title}</h5>
@@ -240,19 +259,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
               </div>
             ))}
           </div>
-
-          {/* Large Duration Chart */}
-          <div className="bg-white dark:bg-zinc-950 p-8 rounded-[2.5rem] border border-zinc-50 dark:border-zinc-900">
-            <h5 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-8">Minutes Lifted</h5>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="shortDate" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900, fill: '#aaa' }} />
-                  <Bar dataKey="duration" fill="currentColor" className="text-zinc-900 dark:text-white" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
         </div>
       ) : (
         <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
@@ -262,12 +268,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
                 <h3 className="text-2xl font-black tracking-tighter">Timeline</h3>
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-1">Daily Breakdown</p>
               </div>
-              <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900 px-4 py-2 rounded-2xl">
-                <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() - 1); setSelectedDay(d.toISOString().split('T')[0]); }}><ChevronLeft size={20} /></button>
-                <input type="date" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)} className="bg-transparent border-none text-xs font-black outline-none w-28 text-center" />
-                <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() + 1); setSelectedDay(d.toISOString().split('T')[0]); }}><ChevronRight size={20} /></button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => handleReviewDay(selectedDay)}
+                  disabled={reviewing}
+                  className="flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl text-xs font-bold hover:opacity-80 transition-opacity disabled:opacity-50"
+                >
+                  {reviewing ? <Clock size={14} className="animate-spin" /> : <Activity size={14} />}
+                  {reviewing ? "Analyzing..." : "Review Day"}
+                </button>
+                <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900 px-4 py-2 rounded-2xl">
+                  <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() - 1); setSelectedDay(d.toISOString().split('T')[0]); }}><ChevronLeft size={20} /></button>
+                  <input type="date" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)} className="bg-transparent border-none text-xs font-black outline-none w-28 text-center" />
+                  <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() + 1); setSelectedDay(d.toISOString().split('T')[0]); }}><ChevronRight size={20} /></button>
+                </div>
               </div>
             </div>
+
+            {review && (
+              <div className="px-10 pb-0 animate-in slide-in-from-top-4">
+                <div className="bg-zinc-50 dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className="font-bold flex items-center gap-2"><Activity size={16} /> AI Coach Review</h4>
+                    <button onClick={() => setReview(null)} className="text-xs text-zinc-400 hover:text-red-500">Dismiss</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {review.activity && (
+                      <div>
+                        <p className="text-[10px] uppercase font-black text-zinc-400 mb-1">Activity</p>
+                        <p className="text-sm leading-relaxed">{review.activity}</p>
+                      </div>
+                    )}
+                    {review.diet && (
+                      <div>
+                        <p className="text-[10px] uppercase font-black text-zinc-400 mb-1">Nutrition</p>
+                        <p className="text-sm leading-relaxed">{review.diet}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="p-10">
               <DailyView date={selectedDay} workouts={workouts} meals={meals} />
             </div>

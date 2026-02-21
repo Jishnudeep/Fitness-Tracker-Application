@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Meal } from '../types';
-import { Utensils, Save, Calendar, Flame, Search, Plus } from 'lucide-react';
+import { Utensils, Save, Calendar, Flame, Search, Plus, Clock } from 'lucide-react';
 import { Button } from './ui/Button';
+import { CustomSelect } from './ui/CustomSelect';
+import { CustomDatePicker } from './ui/CustomDatePicker';
+import { api } from '../services/api';
 
 interface CalorieLogProps {
   onSave: (meal: Meal) => void;
@@ -60,6 +63,32 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
     setShowSuggestions(false);
   };
 
+  const handleAiSearch = async (query: string) => {
+    setName("Searching...");
+    setShowSuggestions(false);
+    try {
+      try {
+        const data = await api.searchFood(query);
+        if (data && !data.error && data.name) {
+          setName(data.name);
+          setCalories(data.calories?.toString() || "");
+          setProtein(data.protein?.toString() || "");
+          setCarbs(data.carbs?.toString() || "");
+          setFats(data.fats?.toString() || "");
+        } else {
+          setName(query);
+          alert("Could not find food info.");
+        }
+      } catch (e) {
+        console.error(e);
+        setName(query);
+        alert("Search failed.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleSave = () => {
     if (!name || !calories) return;
     onSave({
@@ -97,16 +126,21 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs font-bold outline-none" />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Log Date</label>
+              <CustomDatePicker
+                value={date}
+                onChange={(val) => setDate(val)}
+              />
             </div>
-            <select value={type} onChange={(e) => setType(e.target.value as any)} className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs font-bold outline-none appearance-none font-black text-zinc-400 focus:text-zinc-900 dark:focus:text-white">
-              <option value="Breakfast">Breakfast</option>
-              <option value="Lunch">Lunch</option>
-              <option value="Dinner">Dinner</option>
-              <option value="Snack">Snack</option>
-            </select>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Meal Type</label>
+              <CustomSelect
+                value={type}
+                onChange={(val) => setType(val as any)}
+                options={['Breakfast', 'Lunch', 'Dinner', 'Snack']}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -128,6 +162,18 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
         {showSuggestions && searchTerm && (
           <div className="absolute z-20 w-full mt-2 left-0 px-2 animate-in slide-in-from-top-2 duration-200">
             <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-2xl max-h-64 overflow-y-auto">
+
+              {/* AI Search Option */}
+              <button
+                onClick={() => handleAiSearch(searchTerm)}
+                className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 flex justify-between items-center transition-colors group bg-zinc-50/50 dark:bg-zinc-900/50"
+              >
+                <div>
+                  <span className="text-sm font-black flex items-center gap-2"><Flame size={14} className="text-orange-500" /> Search AI for "{searchTerm}"</span>
+                  <span className="text-[10px] block text-zinc-400 font-bold uppercase tracking-tight">Tap to retrieve from web</span>
+                </div>
+              </button>
+
               {FOOD_DATABASE.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase())).map((food, i) => (
                 <button key={i} onClick={() => selectFood(food)} className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 last:border-0 flex justify-between items-center transition-colors group">
                   <div>

@@ -301,5 +301,67 @@ export const api = {
         }
         await delay(200);
         return storage.getRecentFoods();
+    },
+
+    // --- Goals ---
+    async getGoal(): Promise<any> {
+        if (ENABLE_BACKEND) {
+            const authHeaders = await getAuthHeader();
+            const res = await fetch(`${API_URL}/goals/`, {
+                headers: { ...authHeaders }
+            });
+            return handleResponse(res);
+        }
+        return {};
+    },
+
+    async saveGoal(goal: any): Promise<any> {
+        if (ENABLE_BACKEND) {
+            const authHeaders = await getAuthHeader();
+            const res = await fetch(`${API_URL}/goals/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify(goal)
+            });
+            return handleResponse(res);
+        }
+        return goal;
+    },
+
+    async analyzeGoal(goal: any): Promise<any> {
+        if (ENABLE_BACKEND) {
+            const authHeaders = await getAuthHeader();
+            const res = await fetch(`${API_URL}/goals/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify(goal)
+            });
+            return handleResponse(res);
+        }
+        return { analysis: "Backend disabled." };
+    },
+
+    // --- Agents ---
+    async reviewDay(date: string): Promise<any> {
+        if (ENABLE_BACKEND) {
+            const authHeaders = await getAuthHeader();
+            const res = await fetch(`${API_URL}/agents/review/day?date=${date}`, {
+                method: 'POST',
+                headers: { ...authHeaders }
+            });
+            return handleResponse(res);
+        }
+        return { activity: "Backend disabled.", diet: "Backend disabled." };
+    },
+
+    async searchFood(query: string): Promise<any> {
+        if (ENABLE_BACKEND) {
+            const authHeaders = await getAuthHeader();
+            const res = await fetch(`${API_URL}/agents/food/search?query=${encodeURIComponent(query)}`, {
+                headers: { ...authHeaders }
+            });
+            return handleResponse(res);
+        }
+        return { name: query, calories: 0, protein: 0, carbs: 0, fats: 0, message: "Backend disabled." };
     }
 };

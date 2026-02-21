@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Workout, Exercise, Set, MuscleGroup, WorkoutTemplate, ExercisePerformance } from '../types';
 import { Plus, Trash2, Save, Dumbbell, Calendar, Clock, Timer, CheckCircle, ChevronDown, List, Star, Play, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/Button';
+import { CustomDatePicker } from './ui/CustomDatePicker';
 import { api } from '../services/api';
 
 interface WorkoutLogProps {
@@ -251,17 +252,20 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs font-bold outline-none" />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Session Date</label>
+              <CustomDatePicker value={date} onChange={(val) => setDate(val)} />
             </div>
-            <div className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-900 p-2 px-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-              <Timer size={16} className="text-zinc-400" />
-              <input type="number" value={timerInput} onChange={(e) => setTimerInput(Number(e.target.value))} className="w-12 bg-transparent text-xs font-black text-center outline-none" />
-              <span className="text-[10px] font-black uppercase text-zinc-400">Sec Rest</span>
-              <button onClick={handleStartTimer} disabled={timerActive} className="ml-auto bg-zinc-900 dark:bg-white text-white dark:text-black p-2 rounded-xl disabled:opacity-30">
-                <Play size={12} fill="currentColor" />
-              </button>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Rest Timer</label>
+              <div className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-900 p-2 px-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 h-[50px]">
+                <Timer size={16} className="text-zinc-400" />
+                <input type="number" value={timerInput} onChange={(e) => setTimerInput(Number(e.target.value))} className="w-12 bg-transparent text-xs font-black text-center outline-none" />
+                <span className="text-[10px] font-black uppercase text-zinc-400">Secs</span>
+                <button onClick={handleStartTimer} disabled={timerActive} className="ml-auto bg-zinc-900 dark:bg-white text-white dark:text-black p-2 rounded-xl disabled:opacity-30">
+                  <Play size={12} fill="currentColor" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
