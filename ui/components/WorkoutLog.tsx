@@ -189,6 +189,13 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
     } : ex));
   };
 
+  const removeSet = (exerciseId: string, setId: string) => {
+    setExercises(exercises.map(ex => ex.id === exerciseId ? {
+      ...ex,
+      sets: ex.sets.filter(s => s.id !== setId)
+    } : ex));
+  };
+
   const removeExercise = (id: string) => setExercises(exercises.filter(ex => ex.id !== id));
 
   const handleSave = () => {
@@ -220,7 +227,7 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
               <span className="text-[10px] uppercase font-black tracking-widest opacity-40">Resting</span>
               <span className="text-3xl font-black tabular-nums">{Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}</span>
             </div>
-            <button onClick={() => setTimerActive(false)} className="bg-zinc-800 p-2 rounded-xl hover:bg-zinc-700 transition-colors">
+            <button onClick={() => setTimerActive(false)} className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-zinc-800 text-zinc-400 hover:text-white dark:hover:text-black dark:hover:bg-white">
               <X size={20} />
             </button>
           </div>
@@ -236,7 +243,8 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
           </div>
           <button
             onClick={() => setShowTemplateModal(true)}
-            className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"
+            className="w-10 h-10 flex flex-shrink-0 items-center justify-center bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"
+            title="Templates"
           >
             <List size={20} />
           </button>
@@ -262,7 +270,7 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
                 <Timer size={16} className="text-zinc-400" />
                 <input type="number" value={timerInput} onChange={(e) => setTimerInput(Number(e.target.value))} className="w-12 bg-transparent text-xs font-black text-center outline-none" />
                 <span className="text-[10px] font-black uppercase text-zinc-400">Secs</span>
-                <button onClick={handleStartTimer} disabled={timerActive} className="ml-auto bg-zinc-900 dark:bg-white text-white dark:text-black p-2 rounded-xl disabled:opacity-30">
+                <button onClick={handleStartTimer} disabled={timerActive} className="ml-auto w-10 h-10 flex items-center justify-center bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl disabled:opacity-30 hover:scale-[1.05] transition-transform">
                   <Play size={12} fill="currentColor" />
                 </button>
               </div>
@@ -317,7 +325,11 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
                     </div>
                   )}
                 </div>
-                <button onClick={() => removeExercise(exercise.id)} className="p-2 text-zinc-100 dark:text-zinc-900 hover:text-red-500 transition-colors">
+                <button
+                  onClick={() => removeExercise(exercise.id)}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-zinc-50 dark:bg-zinc-900 text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
+                  title="Remove Exercise"
+                >
                   <Trash2 size={18} />
                 </button>
               </div>
@@ -335,7 +347,14 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
                         <input type="number" value={set.reps || ''} onChange={(e) => updateSet(exercise.id, set.id, 'reps', Number(e.target.value))} className="w-full bg-zinc-50 dark:bg-zinc-900 border-none rounded-xl p-2.5 text-center text-xs font-black" placeholder="reps" />
                       </div>
 
-                      <div className="col-span-3 flex justify-end">
+                      <div className="col-span-3 flex justify-end gap-2">
+                        <button
+                          onClick={() => removeSet(exercise.id, set.id)}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-zinc-50 dark:bg-zinc-900 text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
+                          title="Remove Set"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                         <button
                           onClick={() => updateSet(exercise.id, set.id, 'completed', !set.completed)}
                           className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${set.completed ? 'bg-zinc-900 dark:bg-white text-white dark:text-black scale-105' : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-200 dark:text-zinc-700'}`}
@@ -349,7 +368,7 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
 
                 <button
                   onClick={() => addSet(exercise.id)}
-                  className="w-full py-4 mt-4 border border-zinc-50 dark:border-zinc-900 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"
+                  className="w-full py-4 mt-4 border border-zinc-50 dark:border-zinc-900 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
                 >
                   Add Set
                 </button>
@@ -388,10 +407,10 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
           </label>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="secondary" onClick={handleSave} className="py-5 rounded-2xl font-black text-sm uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800 dark:text-white border-0">
-            Finish
+          <Button variant="secondary" onClick={handleSave} className="py-6 rounded-[2rem] font-black text-sm uppercase tracking-widest bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-100 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white transition-all shadow-sm">
+            Save Copy
           </Button>
-          <Button onClick={handleSave} className="py-5 rounded-2xl font-black text-sm uppercase tracking-widest bg-zinc-900 dark:bg-white text-white dark:text-black border-0">
+          <Button onClick={handleSave} className="py-6 rounded-[2rem] font-black text-sm uppercase tracking-widest bg-zinc-900 dark:bg-white text-white dark:text-black border-none shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
             Complete
           </Button>
         </div>
@@ -412,12 +431,12 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
               ) : templateError ? (
                 <div className="py-10 text-center space-y-4">
                   <p className="text-xs font-bold text-red-500">{templateError}</p>
-                  <button onClick={loadTemplates} className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors underline">Try Again</button>
+                  <button onClick={loadTemplates} className="px-4 py-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Try Again</button>
                 </div>
               ) : templates.length === 0 ? (
                 <div className="py-10 text-center space-y-4">
                   <p className="text-xs font-bold text-zinc-500">No templates found</p>
-                  <button onClick={loadTemplates} className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors underline">Refresh</button>
+                  <button onClick={loadTemplates} className="px-4 py-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Refresh</button>
                 </div>
               ) : (
                 templates.map(t => (

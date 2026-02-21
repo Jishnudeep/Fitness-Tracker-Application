@@ -71,10 +71,10 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ value, onCha
                 type="button"
                 onClick={() => handleDateSelect(i)}
                 className={`h-10 w-10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center ${isSelected
-                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-black scale-110 shadow-lg'
-                        : isToday
-                            ? 'border border-zinc-900 dark:border-white text-zinc-900 dark:text-white'
-                            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-black scale-110 shadow-lg'
+                    : isToday
+                        ? 'border border-zinc-900 dark:border-white text-zinc-900 dark:text-white'
+                        : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                     }`}
             >
                 {i}
@@ -98,13 +98,13 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ value, onCha
             {isOpen && (
                 <div className="absolute top-full left-0 mt-2 z-[110] bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-[2rem] shadow-2xl p-6 w-80 animate-in zoom-in-95 slide-in-from-top-2 duration-300">
                     <div className="flex items-center justify-between mb-6">
-                        <button type="button" onClick={handlePrevMonth} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                        <button type="button" onClick={handlePrevMonth} className="w-10 h-10 flex items-center justify-center rounded-xl bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">
                             <ChevronLeft size={18} />
                         </button>
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-900 dark:text-white">
                             {months[currentMonth]} {currentYear}
                         </span>
-                        <button type="button" onClick={handleNextMonth} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                        <button type="button" onClick={handleNextMonth} className="w-10 h-10 flex items-center justify-center rounded-xl bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all">
                             <ChevronRight size={18} />
                         </button>
                     </div>
@@ -127,7 +127,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ value, onCha
                                 setViewDate(today);
                                 setIsOpen(false);
                             }}
-                            className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                            className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 px-3 py-1.5 rounded-lg transition-all"
                         >
                             Today
                         </button>

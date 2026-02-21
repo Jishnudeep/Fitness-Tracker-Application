@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Workout, Exercise, Set, MuscleGroup, WorkoutTemplate, ExercisePerformance } from '../types';
 import { Plus, Trash2, Calendar, Clock, CheckCircle, List, Loader2, X, Activity, Footprints } from 'lucide-react';
 import { Button } from './ui/Button';
+import { CustomDatePicker } from './ui/CustomDatePicker';
 import { api } from '../services/api';
 
 interface CardioLogProps {
@@ -163,7 +164,8 @@ export const CardioLog: React.FC<CardioLogProps> = ({ onSave }) => {
                     </div>
                     <button
                         onClick={() => setShowTemplateModal(true)}
-                        className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all shadow-sm"
+                        className="w-10 h-10 flex flex-shrink-0 items-center justify-center bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all shadow-sm"
+                        title="Templates"
                     >
                         <List size={20} />
                     </button>
@@ -179,13 +181,16 @@ export const CardioLog: React.FC<CardioLogProps> = ({ onSave }) => {
                     />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="relative group">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" size={18} />
-                            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs font-bold outline-none group-focus-within:border-zinc-900 dark:group-focus-within:border-white transition-all" />
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Session Date</label>
+                            <CustomDatePicker value={date} onChange={(val) => setDate(val)} />
                         </div>
-                        <div className="relative group">
-                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" size={18} />
-                            <input type="number" value={duration} onChange={(e) => setDuration(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Duration (min)" className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs font-bold outline-none group-focus-within:border-zinc-900 dark:group-focus-within:border-white transition-all" />
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Duration</label>
+                            <div className="relative group">
+                                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" size={18} />
+                                <input type="number" value={duration} onChange={(e) => setDuration(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Duration (min)" className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs font-bold outline-none group-focus-within:border-zinc-900 dark:group-focus-within:border-white transition-all" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -217,7 +222,11 @@ export const CardioLog: React.FC<CardioLogProps> = ({ onSave }) => {
                                         </div>
                                     )}
                                 </div>
-                                <button onClick={() => removeExercise(exercise.id)} className="p-2 text-zinc-100 dark:text-zinc-900 hover:text-red-500 transition-colors">
+                                <button
+                                    onClick={() => removeExercise(exercise.id)}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-zinc-50 dark:bg-zinc-900 text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
+                                    title="Remove Cardio Exercise"
+                                >
                                     <Trash2 size={18} />
                                 </button>
                             </div>
@@ -250,7 +259,7 @@ export const CardioLog: React.FC<CardioLogProps> = ({ onSave }) => {
 
                                 <button
                                     onClick={() => addSet(exercise.id)}
-                                    className="w-full py-4 mt-4 border border-zinc-50 dark:border-zinc-900 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-4 mt-4 border border-zinc-50 dark:border-zinc-900 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Plus size={14} />
                                     Add Step / Interval
@@ -277,7 +286,7 @@ export const CardioLog: React.FC<CardioLogProps> = ({ onSave }) => {
                     placeholder="Session notes (How was your focus? Breathing?)..."
                     className="w-full p-6 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] text-xs font-medium min-h-[120px] outline-none placeholder:opacity-30 focus:border-zinc-900 dark:focus:border-white transition-all"
                 />
-                <Button onClick={handleSave} className="w-full py-6 rounded-2xl font-black text-sm uppercase tracking-[0.2em] bg-zinc-900 dark:bg-white text-white dark:text-black border-0 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <Button onClick={handleSave} className="w-full py-6 rounded-[2rem] font-black text-sm uppercase tracking-[0.2em] bg-zinc-900 dark:bg-white text-white dark:text-black border-none shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
                     Complete Session
                 </Button>
             </div>
@@ -289,7 +298,7 @@ export const CardioLog: React.FC<CardioLogProps> = ({ onSave }) => {
                     <div className="relative bg-white dark:bg-zinc-950 w-full max-w-sm rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-8 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-2xl font-black tracking-tighter">Cardio Routines</h3>
-                            <button onClick={() => setShowTemplateModal(false)} className="p-2 text-zinc-400 transition-colors"><X size={20} /></button>
+                            <button onClick={() => setShowTemplateModal(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-900 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"><X size={20} /></button>
                         </div>
                         <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                             {isLoadingTemplates ? (

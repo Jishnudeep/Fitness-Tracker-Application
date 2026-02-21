@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { Activity, Flame, Dumbbell, Calendar, Weight, Clock, ChevronDown, ChevronLeft, ChevronRight, Target, Footprints } from 'lucide-react';
 import { DailyView } from './DailyView';
 import { Button } from './ui/Button';
+import { CustomDatePicker } from './ui/CustomDatePicker';
 import { api } from '../services/api';
 
 interface DashboardProps {
@@ -198,8 +199,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
           ))}
         </div>
 
-        <button onClick={goToToday} className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl hover:scale-105 transition-transform">
-          <Target size={24} className="text-zinc-900 dark:text-white" />
+        <button onClick={goToToday} className="w-14 h-14 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 rounded-2xl hover:scale-105 transition-all text-zinc-900 dark:text-white" title="Go to Today">
+          <Target size={24} />
         </button>
       </div>
 
@@ -277,10 +278,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
                   {reviewing ? <Clock size={14} className="animate-spin" /> : <Activity size={14} />}
                   {reviewing ? "Analyzing..." : "Review Day"}
                 </button>
-                <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900 px-4 py-2 rounded-2xl">
-                  <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() - 1); setSelectedDay(d.toISOString().split('T')[0]); }}><ChevronLeft size={20} /></button>
-                  <input type="date" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)} className="bg-transparent border-none text-xs font-black outline-none w-28 text-center" />
-                  <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() + 1); setSelectedDay(d.toISOString().split('T')[0]); }}><ChevronRight size={20} /></button>
+                <div className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-900 p-2 rounded-2xl">
+                  <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() - 1); setSelectedDay(d.toISOString().split('T')[0]); }} className="w-10 h-10 flex items-center justify-center rounded-xl bg-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-400 transition-all"><ChevronLeft size={20} /></button>
+                  <div className="w-48">
+                    <CustomDatePicker value={selectedDay} onChange={(val) => setSelectedDay(val)} />
+                  </div>
+                  <button onClick={() => { const d = new Date(selectedDay); d.setDate(d.getDate() + 1); setSelectedDay(d.toISOString().split('T')[0]); }} className="w-10 h-10 flex items-center justify-center rounded-xl bg-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-400 transition-all"><ChevronRight size={20} /></button>
                 </div>
               </div>
             </div>
@@ -290,7 +293,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
                 <div className="bg-zinc-50 dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                   <div className="flex justify-between items-start mb-4">
                     <h4 className="font-bold flex items-center gap-2"><Activity size={16} /> AI Coach Review</h4>
-                    <button onClick={() => setReview(null)} className="text-xs text-zinc-400 hover:text-red-500">Dismiss</button>
+                    <button onClick={() => setReview(null)} className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors">Dismiss</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {review.activity && (

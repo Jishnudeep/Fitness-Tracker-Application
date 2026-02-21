@@ -166,7 +166,7 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
               {/* AI Search Option */}
               <button
                 onClick={() => handleAiSearch(searchTerm)}
-                className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 flex justify-between items-center transition-colors group bg-zinc-50/50 dark:bg-zinc-900/50"
+                className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 flex justify-between items-center transition-all group bg-zinc-50/50 dark:bg-zinc-900/50"
               >
                 <div>
                   <span className="text-sm font-black flex items-center gap-2"><Flame size={14} className="text-orange-500" /> Search AI for "{searchTerm}"</span>
@@ -175,12 +175,12 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
               </button>
 
               {FOOD_DATABASE.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase())).map((food, i) => (
-                <button key={i} onClick={() => selectFood(food)} className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 last:border-0 flex justify-between items-center transition-colors group">
+                <button key={i} onClick={() => selectFood(food)} className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 last:border-0 flex justify-between items-center transition-all group">
                   <div>
                     <span className="text-sm font-black">{food.name}</span>
                     <span className="text-[10px] block text-zinc-400 font-bold uppercase tracking-tight">P:{food.protein} C:{food.carbs} F:{food.fats}</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-950 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-950 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
                     <Plus size={14} />
                   </div>
                 </button>
@@ -235,7 +235,7 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
           </div>
         </div>
 
-        <Button onClick={handleSave} className="w-full py-6 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] bg-zinc-900 dark:bg-white text-white dark:text-black border-none shadow-xl transition-transform active:scale-95">
+        <Button onClick={handleSave} className="w-full py-6 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] bg-zinc-900 dark:bg-white text-white dark:text-black border-none shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
           <Save className="mr-3" size={18} /> Finish Entry
         </Button>
       </div>
