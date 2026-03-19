@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #18181b;
+  /* Primary palette — monochrome */
+  --color-primary: #09090b;
   --color-secondary: #71717a;
   --color-dark: #000000;
+  --color-dark-card: #0a0a0a;
+  --color-dark-surface: #141414;
 
+  /* Semantic data colors — charts & indicators only */
+  --color-calories: #f59e0b;
+  --color-burned: #ef4444;
+  --color-strength: #6366f1;
+  --color-steps: #14b8a6;
+  --color-cardio: #ec4899;
+  --color-duration: #8b5cf6;
+
+  /* Zinc scale */
   --color-slate-50: #fafafa;
   --color-slate-100: #f4f4f5;
   --color-slate-200: #e4e4e7;
@@ -13,7 +25,70 @@
   --color-slate-500: #71717a;
   --color-slate-600: #52525b;
   --color-slate-700: #3f3f46;
-  --color-slate-800: #18181b;
-  --color-slate-900: #09090b;
-  --color-slate-950: #000000;
+  --color-slate-800: #27272a;
+  --color-slate-900: #18181b;
+  --color-slate-950: #09090b;
+}
+
+/* ─── Base ────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Scrollbar styling ──────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+.dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+/* ─── Toast animations ───────────────────────────── */
+@keyframes toast-in {
+  from { transform: translateY(100%) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes toast-out {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to { transform: translateY(100%) scale(0.95); opacity: 0; }
+}
+.toast-enter { animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.toast-exit { animation: toast-out 0.2s ease-in forwards; }
+
+/* ─── Page transition ────────────────────────────── */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Progress ring ──────────────────────────────── */
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* ─── Sidebar transition ─────────────────────────── */
+.sidebar-label {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: opacity 0.2s, width 0.2s;
+}
+.group:hover .sidebar-label,
+.sidebar-expanded .sidebar-label {
+  opacity: 1;
+  width: auto;
 }

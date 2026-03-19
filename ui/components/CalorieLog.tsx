@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Meal } from '../types';
-import { Utensils, Save, Calendar, Flame, Search, Plus, Clock } from 'lucide-react';
+import { Utensils, Save, Flame, Search, Plus } from 'lucide-react';
 import { Button } from './ui/Button';
 import { CustomSelect } from './ui/CustomSelect';
 import { CustomDatePicker } from './ui/CustomDatePicker';
@@ -38,7 +38,6 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
   const [fats, setFats] = useState('');
   const [type, setType] = useState<Meal['type']>('Breakfast');
 
-  // Search state
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -67,120 +66,91 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
     setName("Searching...");
     setShowSuggestions(false);
     try {
-      try {
-        const data = await api.searchFood(query);
-        if (data && !data.error && data.name) {
-          setName(data.name);
-          setCalories(data.calories?.toString() || "");
-          setProtein(data.protein?.toString() || "");
-          setCarbs(data.carbs?.toString() || "");
-          setFats(data.fats?.toString() || "");
-        } else {
-          setName(query);
-          alert("Could not find food info.");
-        }
-      } catch (e) {
-        console.error(e);
+      const data = await api.searchFood(query);
+      if (data && !data.error && data.name) {
+        setName(data.name);
+        setCalories(data.calories?.toString() || "");
+        setProtein(data.protein?.toString() || "");
+        setCarbs(data.carbs?.toString() || "");
+        setFats(data.fats?.toString() || "");
+      } else {
         setName(query);
-        alert("Search failed.");
       }
     } catch (e) {
       console.error(e);
+      setName(query);
     }
   };
 
   const handleSave = () => {
     if (!name || !calories) return;
     onSave({
-      id: Date.now().toString(),
-      name,
-      calories: Number(calories),
-      protein: Number(protein) || 0,
-      carbs: Number(carbs) || 0,
-      fats: Number(fats) || 0,
-      date: new Date(date).toISOString(),
-      type
+      id: Date.now().toString(), name, calories: Number(calories),
+      protein: Number(protein) || 0, carbs: Number(carbs) || 0, fats: Number(fats) || 0,
+      date: new Date(date).toISOString(), type
     });
-    // Reset
-    setName('');
-    setCalories('');
-    setProtein('');
-    setCarbs('');
-    setFats('');
+    setName(''); setCalories(''); setProtein(''); setCarbs(''); setFats('');
   };
 
   return (
-    <div className="pb-24 space-y-8 animate-in fade-in duration-500 max-w-2xl mx-auto">
+    <div className="pb-24 space-y-6 page-enter max-w-2xl mx-auto">
 
-      {/* Header - Minimalist */}
-      <div className="bg-white dark:bg-black p-8 rounded-[2rem] border border-zinc-100 dark:border-zinc-900 shadow-sm">
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h2 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter">Nutrition</h2>
-            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Fuel Your Engine!</p>
-          </div>
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-zinc-400">
-            <Utensils size={20} />
+      {/* Header */}
+      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <Utensils size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-zinc-900 dark:text-white tracking-tight">Nutrition</h2>
+              <p className="text-xs text-zinc-400 font-medium">Fuel your engine</p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Log Date</label>
-              <CustomDatePicker
-                value={date}
-                onChange={(val) => setDate(val)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Meal Type</label>
-              <CustomSelect
-                value={type}
-                onChange={(val) => setType(val as any)}
-                options={['Breakfast', 'Lunch', 'Dinner', 'Snack']}
-              />
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-zinc-500 ml-1">Log Date</label>
+            <CustomDatePicker value={date} onChange={(val) => setDate(val)} />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-zinc-500 ml-1">Meal Type</label>
+            <CustomSelect value={type} onChange={(val) => setType(val as any)} options={['Breakfast', 'Lunch', 'Dinner', 'Snack']} />
           </div>
         </div>
       </div>
 
-      {/* Search Field - Restored */}
-      <div className="relative px-2" ref={searchRef}>
+      {/* Search */}
+      <div className="relative" ref={searchRef}>
         <div className="relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-          <input
-            type="text"
-            value={searchTerm}
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+          <input type="text" value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
             onFocus={() => setShowSuggestions(true)}
             placeholder="Search food database..."
-            className="w-full pl-14 pr-6 py-5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-3xl text-sm font-black outline-none placeholder:opacity-20"
-          />
+            className="w-full pl-11 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-medium outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-700 focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors" />
         </div>
 
         {showSuggestions && searchTerm && (
-          <div className="absolute z-20 w-full mt-2 left-0 px-2 animate-in slide-in-from-top-2 duration-200">
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-2xl max-h-64 overflow-y-auto">
-
-              {/* AI Search Option */}
-              <button
-                onClick={() => handleAiSearch(searchTerm)}
-                className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 flex justify-between items-center transition-all group bg-zinc-50/50 dark:bg-zinc-900/50"
-              >
+          <div className="absolute z-20 w-full mt-1.5 page-enter">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+              <button onClick={() => handleAiSearch(searchTerm)}
+                className="w-full text-left p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center transition-colors">
                 <div>
-                  <span className="text-sm font-black flex items-center gap-2"><Flame size={14} className="text-orange-500" /> Search AI for "{searchTerm}"</span>
-                  <span className="text-[10px] block text-zinc-400 font-bold uppercase tracking-tight">Tap to retrieve from web</span>
+                  <span className="text-sm font-semibold flex items-center gap-2"><Flame size={14} className="text-amber-500" /> Search AI for "{searchTerm}"</span>
+                  <span className="text-[11px] text-zinc-400">Tap to look up nutrition info</span>
                 </div>
               </button>
 
               {FOOD_DATABASE.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase())).map((food, i) => (
-                <button key={i} onClick={() => selectFood(food)} className="w-full text-left p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-50 dark:border-zinc-900 last:border-0 flex justify-between items-center transition-all group">
+                <button key={i} onClick={() => selectFood(food)}
+                  className="w-full text-left p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-800 last:border-0 flex justify-between items-center transition-colors group">
                   <div>
-                    <span className="text-sm font-black">{food.name}</span>
-                    <span className="text-[10px] block text-zinc-400 font-bold uppercase tracking-tight">P:{food.protein} C:{food.carbs} F:{food.fats}</span>
+                    <span className="text-sm font-semibold">{food.name}</span>
+                    <span className="text-[11px] text-zinc-400 block">P:{food.protein} C:{food.carbs} F:{food.fats}</span>
                   </div>
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-950 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
+                  <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-zinc-900 transition-all">
                     <Plus size={14} />
                   </div>
                 </button>
@@ -190,53 +160,38 @@ export const CalorieLog: React.FC<CalorieLogProps> = ({ onSave }) => {
         )}
       </div>
 
-      {/* Main Form Area */}
-      <div className="space-y-8 px-2">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Selection or manual name..."
-          className="w-full text-2xl font-black bg-transparent border-b border-zinc-100 dark:border-zinc-900 focus:border-zinc-900 dark:focus:border-white outline-none py-2 transition-all placeholder:opacity-10"
-        />
+      {/* Macro Form */}
+      <div className="space-y-4">
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Food name..."
+          className="w-full text-lg font-bold bg-transparent border-b-2 border-zinc-100 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-white outline-none py-2 transition-colors placeholder:text-zinc-300 dark:placeholder:text-zinc-700" />
 
-        <div className="bg-white dark:bg-zinc-950 p-8 rounded-[2rem] border border-zinc-50 dark:border-zinc-900 shadow-sm space-y-8">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-6">
           <div className="flex justify-between items-end">
             <div className="flex-1 max-w-[200px]">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2 block">Energy (kcal)</label>
-              <input
-                type="number"
-                value={calories}
-                onChange={(e) => setCalories(e.target.value)}
-                placeholder="--"
-                className="text-5xl font-black bg-transparent outline-none w-full placeholder:opacity-10 tabular-nums"
-              />
+              <label className="text-xs font-semibold text-zinc-500 mb-1.5 block">Energy (kcal)</label>
+              <input type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder="--"
+                className="text-4xl font-extrabold bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 tabular-nums text-amber-500" />
             </div>
-            <Flame size={32} className="text-zinc-100 dark:text-zinc-900 mb-2" />
+            <Flame size={28} className="text-zinc-100 dark:text-zinc-800 mb-1" />
           </div>
 
-          <div className="grid grid-cols-3 gap-6 pt-8 border-t border-zinc-50 dark:border-zinc-900">
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
             {[
-              { label: 'Protein (g)', val: protein, set: (v: string) => setProtein(v) },
-              { label: 'Carbs (g)', val: carbs, set: (v: string) => setCarbs(v) },
-              { label: 'Fats (g)', val: fats, set: (v: string) => setFats(v) }
+              { label: 'Protein (g)', val: protein, set: setProtein },
+              { label: 'Carbs (g)', val: carbs, set: setCarbs },
+              { label: 'Fats (g)', val: fats, set: setFats }
             ].map((macro, i) => (
               <div key={i}>
-                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-2 block">{macro.label}</label>
-                <input
-                  type="number"
-                  value={macro.val}
-                  onChange={(e) => macro.set(e.target.value)}
-                  placeholder="--"
-                  className="text-xl font-black bg-transparent outline-none w-full placeholder:opacity-20 tabular-nums"
-                />
+                <label className="text-[11px] font-semibold text-zinc-400 mb-1 block">{macro.label}</label>
+                <input type="number" value={macro.val} onChange={(e) => macro.set(e.target.value)} placeholder="--"
+                  className="text-lg font-bold bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 tabular-nums" />
               </div>
             ))}
           </div>
         </div>
 
-        <Button onClick={handleSave} className="w-full py-6 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] bg-zinc-900 dark:bg-white text-white dark:text-black border-none shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
-          <Save className="mr-3" size={18} /> Finish Entry
+        <Button onClick={handleSave} size="lg" className="w-full">
+          <Save size={18} /> Log Meal
         </Button>
       </div>
     </div>

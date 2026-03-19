@@ -1,6 +1,6 @@
 import React from 'react';
 import { Workout, Meal, MuscleGroup } from '../types';
-import { Dumbbell, Utensils, Clock, Flame, Info, Apple, Weight, Footprints } from 'lucide-react';
+import { Dumbbell, Utensils, Clock, Flame, Info, Apple, Footprints } from 'lucide-react';
 
 interface DailyViewProps {
     date: string;
@@ -9,13 +9,6 @@ interface DailyViewProps {
 }
 
 export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) => {
-    const displayDate = new Date(date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-    });
-
     const dailyWorkouts = workouts.filter(w => w.date.startsWith(date));
     const dailyMeals = meals.filter(m => m.date.startsWith(date));
 
@@ -46,123 +39,109 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
     const totalDuration = dailyWorkouts.reduce((acc, w) => acc + (w.durationMinutes || 0), 0);
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+        <div className="space-y-8 page-enter">
 
-            {/* Nutrition Section */}
-            <div className="bg-white dark:bg-black p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 shadow-sm">
-                <div className="flex items-center gap-3 mb-10">
-                    <Utensils size={20} className="text-zinc-900 dark:text-white" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Nutrition</h3>
+            {/* Nutrition */}
+            <div>
+                <div className="flex items-center gap-2 mb-4">
+                    <Utensils size={16} className="text-amber-500" />
+                    <h3 className="text-sm font-semibold text-zinc-500">Nutrition</h3>
                 </div>
 
                 {dailyMeals.length > 0 ? (
-                    <div className="space-y-10">
-                        <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-4 gap-3">
                             {[
-                                { label: 'Calories', val: totalCalories },
-                                { label: 'Protein', val: `${totalProtein}g` },
-                                { label: 'Carbs', val: `${totalCarbs}g` },
-                                { label: 'Fats', val: `${totalFats}g` }
+                                { label: 'Calories', val: totalCalories, color: 'text-amber-500' },
+                                { label: 'Protein', val: `${totalProtein}g`, color: 'text-zinc-900 dark:text-white' },
+                                { label: 'Carbs', val: `${totalCarbs}g`, color: 'text-zinc-900 dark:text-white' },
+                                { label: 'Fats', val: `${totalFats}g`, color: 'text-zinc-900 dark:text-white' }
                             ].map((s, i) => (
-                                <div key={i} className="text-center">
-                                    <p className="text-2xl font-black text-zinc-900 dark:text-white">{s.val}</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold mt-1">{s.label}</p>
+                                <div key={i} className="text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl p-3">
+                                    <p className={`text-lg font-bold ${s.color}`}>{s.val}</p>
+                                    <p className="text-[11px] text-zinc-400 font-medium mt-0.5">{s.label}</p>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="space-y-4 pt-8 border-t border-zinc-50 dark:border-zinc-900">
+                        <div className="space-y-2">
                             {dailyMeals.map((meal) => (
-                                <div key={meal.id} className="p-6 rounded-3xl bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-900 flex justify-between items-center group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl">
-                                            <Flame size={18} />
+                                <div key={meal.id} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                            <Flame size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-base font-black text-zinc-900 dark:text-white leading-tight">{meal.name}</p>
-                                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">{meal.type}</p>
+                                            <p className="text-sm font-semibold text-zinc-900 dark:text-white">{meal.name}</p>
+                                            <p className="text-xs text-zinc-400 font-medium">{meal.type}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-lg font-black text-zinc-900 dark:text-white">{meal.calories} <span className="text-[10px] font-bold opacity-30">kcal</span></p>
-                                        <p className="text-[9px] text-zinc-400 font-black uppercase tracking-tighter">P:{meal.protein} C:{meal.carbs} F:{meal.fats}</p>
+                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{meal.calories} <span className="text-xs font-normal text-zinc-400">kcal</span></p>
+                                        <p className="text-[11px] text-zinc-400">P:{meal.protein} C:{meal.carbs} F:{meal.fats}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 ) : (
-                    <div className="py-20 text-center">
-                        <Apple size={40} className="mx-auto mb-4 text-zinc-100 dark:text-zinc-900" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Empty Log</p>
+                    <div className="py-12 text-center bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                        <Apple size={32} className="mx-auto mb-2 text-zinc-300 dark:text-zinc-600" />
+                        <p className="text-sm text-zinc-400 font-medium">No meals logged</p>
                     </div>
                 )}
             </div>
 
-            {/* Fitness Section */}
-            <div className="bg-white dark:bg-black p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-900 shadow-sm">
-                <div className="flex items-center gap-3 mb-10">
-                    <Dumbbell size={20} className="text-zinc-900 dark:text-white" />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Training</h3>
+            {/* Training */}
+            <div>
+                <div className="flex items-center gap-2 mb-4">
+                    <Dumbbell size={16} className="text-indigo-500" />
+                    <h3 className="text-sm font-semibold text-zinc-500">Training</h3>
                 </div>
 
                 {dailyWorkouts.length > 0 ? (
-                    <div className="space-y-10">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
-                                <Clock size={20} className="text-zinc-400" />
-                                <div>
-                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalDuration} min</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Duration</p>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {[
+                                { icon: Clock, label: 'Duration', val: `${totalDuration} min`, color: 'text-purple-500' },
+                                { icon: Dumbbell, label: 'Volume', val: `${totalWeight.toLocaleString()} kg`, color: 'text-indigo-500' },
+                                { icon: Flame, label: 'Burned', val: `${totalBurned.toLocaleString()} kcal`, color: 'text-red-500' },
+                                { icon: Footprints, label: 'Steps', val: totalSteps.toLocaleString(), color: 'text-teal-500' },
+                            ].map((s, i) => (
+                                <div key={i} className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <s.icon size={16} className={s.color} />
+                                    <div>
+                                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{s.val}</p>
+                                        <p className="text-[11px] text-zinc-400 font-medium">{s.label}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
-                                <Weight size={20} className="text-zinc-400" />
-                                <div>
-                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalWeight.toLocaleString()} kg</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Volume</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
-                                <Flame size={20} className="text-zinc-400" />
-                                <div>
-                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalBurned.toLocaleString()} kcal</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Burned</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-100 dark:border-zinc-900">
-                                <Footprints size={20} className="text-zinc-400" />
-                                <div>
-                                    <p className="text-xl font-black text-zinc-900 dark:text-white">{totalSteps.toLocaleString()}</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Steps</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
 
-                        <div className="space-y-6 pt-8 border-t border-zinc-50 dark:border-zinc-900">
+                        <div className="space-y-4">
                             {dailyWorkouts.map((workout) => (
-                                <div key={workout.id} className="space-y-6">
-                                    <div className="flex justify-between items-center group">
-                                        <p className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-[0.2em]">{workout.name}</p>
-                                        {workout.notes && <button className="text-zinc-300 hover:text-zinc-600 transition-colors"><Info size={14} /></button>}
+                                <div key={workout.id} className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-sm font-semibold text-zinc-900 dark:text-white">{workout.name}</p>
+                                        {workout.notes && <button className="text-zinc-300 hover:text-zinc-500 transition-colors"><Info size={14} /></button>}
                                     </div>
-                                    <div className="grid grid-cols-1 gap-4">
+                                    <div className="space-y-2">
                                         {workout.exercises.map((ex) => (
-                                            <div key={ex.id} className="p-6 bg-zinc-50/30 dark:bg-zinc-950/10 rounded-3xl border border-zinc-50 dark:border-zinc-900/50">
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <p className="text-sm font-black text-zinc-800 dark:text-zinc-200">{ex.name}</p>
-                                                    <span className="text-[8px] font-black px-2 py-1 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 rounded-full uppercase tracking-wider">{ex.muscleGroup}</span>
+                                            <div key={ex.id} className="p-4 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{ex.name}</p>
+                                                    <span className="text-[10px] font-medium px-2 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 rounded-full">{ex.muscleGroup}</span>
                                                 </div>
-                                                <div className="flex flex-wrap gap-2">
+                                                <div className="flex flex-wrap gap-1.5">
                                                     {ex.sets.map((s, idx) => {
                                                         const isCardio = ex.muscleGroup === MuscleGroup.CARDIO;
                                                         return (
-                                                            <div key={s.id} className="text-[9px] font-bold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800/50 text-zinc-500">
-                                                                <span className="text-zinc-300 mr-1">{idx + 1}</span>
+                                                            <div key={s.id} className="text-xs font-medium bg-white dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-100 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400">
+                                                                <span className="text-zinc-300 dark:text-zinc-600 mr-1">{idx + 1}</span>
                                                                 {isCardio ? (
-                                                                    `${s.speed || 0}km/h · ${s.incline || 0}inc · ${s.timeSeconds || 0}s · ${s.caloriesBurnt || 0}kcal ${s.steps ? `· ${s.steps} steps` : ''}`
+                                                                    `${s.speed || 0}km/h · ${s.incline || 0}inc · ${s.timeSeconds || 0}s · ${s.caloriesBurnt || 0}kcal${s.steps ? ` · ${s.steps} steps` : ''}`
                                                                 ) : (
-                                                                    `${s.weight || 0}kg x ${s.reps || 0}`
+                                                                    `${s.weight || 0}kg × ${s.reps || 0}`
                                                                 )}
                                                             </div>
                                                         );
@@ -176,9 +155,9 @@ export const DailyView: React.FC<DailyViewProps> = ({ date, workouts, meals }) =
                         </div>
                     </div>
                 ) : (
-                    <div className="py-20 text-center">
-                        <Dumbbell size={40} className="mx-auto mb-4 text-zinc-100 dark:text-zinc-900" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">No Activity</p>
+                    <div className="py-12 text-center bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                        <Dumbbell size={32} className="mx-auto mb-2 text-zinc-300 dark:text-zinc-600" />
+                        <p className="text-sm text-zinc-400 font-medium">No activity logged</p>
                     </div>
                 )}
             </div>
