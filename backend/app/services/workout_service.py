@@ -55,7 +55,7 @@ class WorkoutService:
             if not ex_res.data:
                 ex_res = supabase.table("exercises").insert({
                     "name": ex_data.name,
-                    "muscle_group": ex_data.muscle_group.value
+                    "muscle_group": ex_data.muscle_group.value if ex_data.muscle_group else None
                 }).execute()
             
             exercise_id = ex_res.data[0]["id"]
@@ -125,7 +125,7 @@ class WorkoutService:
             )
             await TemplateService.create_template(user_id, template_create)
 
-        return workout
+        return await WorkoutService.get_workout_by_id(workout_id)
 
     @staticmethod
     async def get_workout_by_id(workout_id: str) -> dict:

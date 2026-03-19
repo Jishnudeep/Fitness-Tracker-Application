@@ -213,17 +213,7 @@ export const api = {
                 body: JSON.stringify({
                     name: template.name,
                     description: template.description,
-                    exercises: template.exercises.map(ex => ({
-                        exercise_id: ex.exercise_id,
-                        default_sets: ex.defaultSets,
-                        default_reps: ex.defaultReps,
-                        default_weight: ex.defaultWeight,
-                        default_speed: ex.defaultSpeed,
-                        default_incline: ex.defaultIncline,
-                        default_time_seconds: ex.defaultTimeSeconds,
-                        default_calories_burnt: ex.defaultCaloriesBurnt,
-                        order_index: ex.orderIndex
-                    }))
+                    exercises: template.exercises
                 })
             });
             return handleResponse(res);

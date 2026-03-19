@@ -36,7 +36,7 @@ async def get_day_activity(user_id: str, date: str):
     """Fetches workouts for a specific user and date."""
     start = f"{date}T00:00:00"
     end = f"{date}T23:59:59"
-    response = supabase.table("workouts").select("*, exercises(*, sets(*))").eq("user_id", user_id).gte("date", start).lte("date", end).execute()
+    response = supabase.table("workouts").select("*, workout_exercises(*, exercises(*), sets(*))").eq("user_id", user_id).gte("date", start).lte("date", end).execute()
     return response.data
 
 async def get_day_diet(user_id: str, date: str):

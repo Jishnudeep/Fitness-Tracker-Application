@@ -11,7 +11,7 @@ class GoalBase(BaseModel):
     age: Optional[int] = Field(None, description="Age in years")
     goal_weight: Optional[float] = None
     goal_body_fat: Optional[float] = None
-    target_date: Optional[date] = None
+    target_date: Optional[datetime] = None
     daily_caloric_deficit: Optional[int] = None
     daily_calories: Optional[int] = None
 

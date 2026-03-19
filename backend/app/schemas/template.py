@@ -1,19 +1,19 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
 
 class TemplateExerciseBase(BaseModel):
-    exercise_id: UUID
-    default_sets: int = 3
-    default_reps: Optional[int] = 10
-    default_weight: Optional[float] = 0.0
-    default_speed: Optional[float] = None
-    default_incline: Optional[float] = None
-    default_time_seconds: Optional[int] = None
-    default_calories_burnt: Optional[float] = 60.0
-    default_steps: Optional[int] = 0
-    order_index: int
+    exercise_id: UUID = Field(..., alias="exercise_id")
+    default_sets: int = Field(3, alias="defaultSets")
+    default_reps: Optional[int] = Field(10, alias="defaultReps")
+    default_weight: Optional[float] = Field(0.0, alias="defaultWeight")
+    default_speed: Optional[float] = Field(None, alias="defaultSpeed")
+    default_incline: Optional[float] = Field(None, alias="defaultIncline")
+    default_time_seconds: Optional[int] = Field(None, alias="defaultTimeSeconds")
+    default_calories_burnt: Optional[float] = Field(60.0, alias="defaultCaloriesBurnt")
+    default_steps: Optional[int] = Field(0, alias="defaultSteps")
+    order_index: int = Field(..., alias="orderIndex")
 
 class TemplateExerciseCreate(TemplateExerciseBase):
     pass
@@ -23,8 +23,7 @@ class TemplateExercise(TemplateExerciseBase):
     name: Optional[str] = None
     muscle_group: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class TemplateBase(BaseModel):
     name: str
@@ -44,5 +43,4 @@ class Template(TemplateBase):
     created_at: datetime
     exercises: List[TemplateExercise] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

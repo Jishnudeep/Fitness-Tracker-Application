@@ -110,6 +110,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ workouts, meals }) => {
       return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.timeSeconds || 0), 0);
     }, 0), 0) / 60;
     const cardioBurned = todayWorkouts.reduce((sum, w) => sum + w.exercises.reduce((exAcc, ex) => {
+      if (ex.muscleGroup !== MuscleGroup.CARDIO) return exAcc;
       return exAcc + ex.sets.reduce((sAcc, s) => sAcc + (s.caloriesBurnt || 0), 0);
     }, 0), 0);
     const steps = todayWorkouts.reduce((sum, w) => sum + w.exercises.reduce((exAcc, ex) => {

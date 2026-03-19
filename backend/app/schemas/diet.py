@@ -1,9 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Literal
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 class FoodItemBase(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
+    
     name: str
     calories: int
     protein: float
@@ -17,18 +19,20 @@ class FoodItemCreate(FoodItemBase):
 class FoodItem(FoodItemBase):
     id: UUID
     meal_id: UUID
-    
-    class Config:
-        from_attributes = True
 
 class MealBase(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
+    
     name: Optional[str] = None
-    date: date
+    date: datetime
     type: Literal['Breakfast', 'Lunch', 'Dinner', 'Snack']
+    # Aggregated macros (can be sent from frontend or calculated)
+    calories: Optional[int] = Field(None, validation_alias="total_calories")
+    protein: Optional[float] = Field(None, validation_alias="total_protein")
+    carbs: Optional[float] = Field(None, validation_alias="total_carbs")
+    fats: Optional[float] = Field(None, validation_alias="total_fats")
     
 class MealCreate(MealBase):
-    # When creating, we might calculate totals from items or trust the frontend?
-    # Better to calculate on backend.
     items: List[FoodItemCreate] = []
 
 class Meal(MealBase):
@@ -36,11 +40,8 @@ class Meal(MealBase):
     user_id: UUID
     items: List[FoodItem] = []
     
-    # Computed/Cached totals
-    total_calories: int = Field(..., alias="calories") 
-    total_protein: float = Field(..., alias="protein")
-    total_carbs: float = Field(..., alias="carbs")
-    total_fats: float = Field(..., alias="fats")
-
-    class Config:
-        from_attributes = True
+    # Computed/Cached totals (using validation_alias to map DB names)
+    calories: int = Field(..., validation_alias="total_calories") 
+    protein: float = Field(..., validation_alias="total_protein")
+    carbs: float = Field(..., validation_alias="total_carbs")
+    fats: float = Field(..., validation_alias="total_fats")

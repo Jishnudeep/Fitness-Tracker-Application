@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
@@ -20,8 +20,8 @@ class SetBase(BaseModel):
     weight: Optional[float] = None
     speed: Optional[float] = None
     incline: Optional[float] = None
-    time_seconds: Optional[int] = None
-    calories_burnt: Optional[float] = 0.0
+    time_seconds: Optional[int] = Field(None, alias="timeSeconds")
+    calories_burnt: Optional[float] = Field(0.0, alias="caloriesBurnt")
     steps: Optional[int] = 0
     completed: bool = False
 
@@ -32,8 +32,7 @@ class Set(SetBase):
     id: UUID
     workout_exercise_id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 # --- Exercise Schemas (Master List) ---
 class ExerciseBase(BaseModel):
@@ -46,8 +45,7 @@ class ExerciseCreate(ExerciseBase):
 class Exercise(ExerciseBase):
     id: UUID
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 # --- Workout Exercise (Join + Sets) ---
 class WorkoutExerciseCreate(BaseModel):
@@ -62,8 +60,7 @@ class WorkoutExercise(BaseModel):
     exercise: Exercise # Nested exercise details
     sets: List[Set]
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 # --- Workout Schemas ---
 class WorkoutBase(BaseModel):
@@ -71,20 +68,19 @@ class WorkoutBase(BaseModel):
     date: datetime
     duration_minutes: int = Field(..., alias="durationMinutes")
     notes: Optional[str] = None
+    template_id: Optional[UUID] = None
+    save_as_template: bool = False
 
 class WorkoutCreate(WorkoutBase):
     # For creating a workout, we accept a list of detailed exercises (frontend style)
     exercises: List[WorkoutExerciseCreate] 
-    template_id: Optional[UUID] = None
-    save_as_template: bool = False # If true, create a new template from this workout
 
 class Workout(WorkoutBase):
     id: UUID
     user_id: UUID
     exercises: List['FrontendExercise'] 
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 # --- Frontend specific mapping ---
 # The frontend nests Sets INSIDE Exercise, but DB has Workout -> WorkoutExercise -> Exercise
@@ -106,4 +102,9 @@ class ExercisePerformance(BaseModel):
     exerciseName: str
     lastWeight: float
     lastReps: int
+    lastSpeed: Optional[float] = None
+    lastIncline: Optional[float] = None
+    lastTimeSeconds: Optional[int] = None
+    lastCaloriesBurnt: Optional[float] = None
+    lastSteps: Optional[int] = None
     lastDate: Optional[datetime] = None
