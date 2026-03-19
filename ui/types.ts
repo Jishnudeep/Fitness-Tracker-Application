@@ -110,4 +110,19 @@ export interface User {
   isLoggedIn: boolean;
 }
 
+export interface Goal {
+  id?: string;
+  current_height?: number;
+  current_weight?: number;
+  current_body_fat?: number;
+  age?: number;
+  gender?: string;
+  lifestyle?: string;
+  goal_weight?: number;
+  goal_body_fat?: number;
+  target_date?: string;
+  daily_caloric_deficit?: number;
+  daily_calories?: number;
+}
+
 export type ViewState = 'dashboard' | 'workout' | 'cardio' | 'calories' | 'ai' | 'goals';

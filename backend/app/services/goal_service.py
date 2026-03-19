@@ -13,17 +13,12 @@ class GoalService:
 
     @staticmethod
     async def create_goal(user_id: str, goal: GoalCreate) -> Dict[str, Any]:
-        # Check if goal exists
         existing = await GoalService.get_goal(user_id)
         if existing:
             return await GoalService.update_goal(user_id, goal)
         
         data = goal.model_dump(mode='json')
         data["user_id"] = user_id
-        
-        # Calculate deficit if not provided (This will be done by Agent before calling this, or here?)
-        # For now, we assume the router handles the Agent call and passes the result here or the UI does.
-        # But per plan "Backend logic (Deficit calculation via ADK Agent)", let's allow saving passed values.
         
         response = supabase.table("goals").insert(data).execute()
         return response.data[0] if response.data else None

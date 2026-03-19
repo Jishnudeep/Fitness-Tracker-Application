@@ -12,6 +12,8 @@ create table if not exists public.goals (
   daily_caloric_deficit int,
   daily_calories int,
   age int, 
+  lifestyle text,
+  gender text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

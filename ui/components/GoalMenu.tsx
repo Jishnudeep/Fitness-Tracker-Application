@@ -7,6 +7,10 @@ import { api } from '../services/api';
 import { useToast } from './ui/Toast';
 
 export const GoalMenu: React.FC = () => {
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [gender, setGender] = useState('Male');
+  const [lifestyle, setLifestyle] = useState('Active');
   const [weight, setWeight] = useState('');
   const [targetWeight, setTargetWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -24,10 +28,14 @@ export const GoalMenu: React.FC = () => {
       try {
         const goal = await api.getGoal();
         if (goal) {
+          setAge(goal.age?.toString() || '');
+          setHeight(goal.current_height?.toString() || '');
+          setGender(goal.gender || localStorage.getItem('user_gender') || 'Male');
+          setLifestyle(goal.lifestyle || localStorage.getItem('user_lifestyle') || 'Active');
           setWeight(goal.current_weight?.toString() || '');
-          setTargetWeight(goal.target_weight?.toString() || '');
+          setTargetWeight(goal.goal_weight?.toString() || '');
           setBodyFat(goal.current_body_fat?.toString() || '');
-          setTargetBodyFat(goal.target_body_fat?.toString() || '');
+          setTargetBodyFat(goal.goal_body_fat?.toString() || '');
           setTargetDate(goal.target_date || '');
         }
       } catch (e) { console.error(e); } finally { setLoaded(true); }
@@ -38,9 +46,13 @@ export const GoalMenu: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      localStorage.setItem('user_gender', gender);
+      localStorage.setItem('user_lifestyle', lifestyle);
       await api.saveGoal({
-        current_weight: Number(weight) || 0, target_weight: Number(targetWeight) || 0,
-        current_body_fat: Number(bodyFat) || 0, target_body_fat: Number(targetBodyFat) || 0,
+        age: Number(age) || 0, current_height: Number(height) || 0,
+        current_weight: Number(weight) || 0, goal_weight: Number(targetWeight) || 0,
+        current_body_fat: Number(bodyFat) || 0, goal_body_fat: Number(targetBodyFat) || 0,
+        lifestyle: lifestyle,
         target_date: targetDate
       });
       showToast("Goals saved!", "success");
@@ -53,9 +65,13 @@ export const GoalMenu: React.FC = () => {
     setIsAnalyzing(true);
     setAnalysis(null);
     try {
+      localStorage.setItem('user_gender', gender);
+      localStorage.setItem('user_lifestyle', lifestyle);
       const result = await api.analyzeGoal({
-        current_weight: Number(weight) || 0, target_weight: Number(targetWeight) || 0,
-        current_body_fat: Number(bodyFat) || 0, target_body_fat: Number(targetBodyFat) || 0,
+        age: Number(age) || 0, current_height: Number(height) || 0,
+        current_weight: Number(weight) || 0, goal_weight: Number(targetWeight) || 0,
+        current_body_fat: Number(bodyFat) || 0, goal_body_fat: Number(targetBodyFat) || 0,
+        lifestyle: lifestyle,
         target_date: targetDate
       });
       setAnalysis(result.analysis || result.message || "Analysis complete.");
@@ -88,7 +104,42 @@ export const GoalMenu: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
+          
+          {/* Physical Profile */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-500 ml-1">Age</label>
+              <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Years"
+                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-500 ml-1">Height (cm)</label>
+              <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="cm"
+                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-500 ml-1">Gender</label>
+              <select value={gender} onChange={(e) => setGender(e.target.value)}
+                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors appearance-none">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-500 ml-1">Lifestyle</label>
+              <select value={lifestyle} onChange={(e) => setLifestyle(e.target.value)}
+                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors appearance-none">
+                <option value="Sedentary">Sedentary</option>
+                <option value="Lightly Active">Lightly Active</option>
+                <option value="Active">Active</option>
+                <option value="Very Active">Very Active</option>
+              </select>
+            </div>
+          </div>
+          
+          <hr className="border-t border-zinc-100 dark:border-zinc-800 -mx-6" />
+
           {/* Current vs Target */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
