@@ -4,12 +4,23 @@ from google.adk import Agent
 from google.genai import types
 from app.agents.adk_utils import get_model, run_adk_agent, clean_json_response
 import json
+from datetime import datetime
+
+def _calculate_timeline(target_datetime):
+    current_date = datetime.now().date()
+    days_remaining = "Unknown"
+    target_date_str = "None"
+    if target_datetime:
+        target_date_str = target_datetime.date().isoformat()
+        days_remaining = (target_datetime.date() - current_date).days
+    return current_date, target_date_str, days_remaining
 
 async def analyze_goal(goal: GoalCreate) -> dict:
     """
     Uses Gemini (via ADK Agent) to analyze the user's stats and goal.
     Returns a dictionary with advised deficits and analysis.
     """
+    current_date, target_date_str, days_remaining = _calculate_timeline(goal.target_date)
     
     # 1. Construct Prompt
     instruction = """
@@ -30,22 +41,26 @@ async def analyze_goal(goal: GoalCreate) -> dict:
     - "analysis": (string) The formatted markdown content.
     Return ONLY valid JSON.
     """
-    
+
     prompt = f"""
     ### USER PROFILE:
     - Height: {goal.current_height} cm
     - Current Weight: {goal.current_weight} kg
     - Age: {goal.age} years
     - Body Fat: {goal.current_body_fat}%
+    - Gender: {goal.gender}
+    - Lifestyle: {goal.lifestyle}
     
     ### TARGETS:
     - Goal Weight: {goal.goal_weight} kg
     - Goal Body Fat: {goal.goal_body_fat}%
-    - Target Date: {goal.target_date}
+    - Current Date: {current_date}
+    - Target Date: {target_date_str}
+    - Days Remaining: {days_remaining}
     
     ### YOUR TASK:
     1. **Metabolic Analysis**: Calculate BMR and TDEE (Sedentary baseline).
-    2. **Strategic Plan**: Determine a sustainable caloric deficit to reach the goal by {goal.target_date}.
+    2. **Strategic Plan**: Determine a sustainable caloric deficit to reach the goal by {target_date_str}.
     3. **Professional Advice**: Provide specific advice on protein intake, training focus, and mindset.
     """
     
