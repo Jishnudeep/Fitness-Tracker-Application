@@ -160,27 +160,46 @@ class WorkoutService:
         results = []
         
         for name in exercise_names:
-            query = (supabase.table("sets")
-                    .select("weight, reps, speed, incline, time_seconds, calories_burnt, steps, workout_exercises!inner(workout_id, workouts!inner(date, name), exercises!inner(name))")
+            query = (supabase.table("workouts")
+                    .select("date, workout_exercises!inner(exercises!inner(name), sets(*))")
+                    .eq("user_id", user_id)
                     .eq("workout_exercises.exercises.name", name)
-                    .eq("workout_exercises.workouts.user_id", user_id)
-                    .order("workout_exercises.workouts.date", desc=True)
+                    .order("date", desc=True)
                     .limit(1)
                     .execute())
             
             if query.data:
-                s = query.data[0]
-                results.append({
-                    "exerciseName": name,
-                    "lastWeight": float(s["weight"]) if s["weight"] is not None else 0,
-                    "lastReps": s["reps"] if s["reps"] is not None else 0,
-                    "lastSpeed": float(s["speed"]) if s["speed"] is not None else 0,
-                    "lastIncline": float(s["incline"]) if s["incline"] is not None else 0,
-                    "lastTimeSeconds": s["time_seconds"] if s["time_seconds"] is not None else 0,
-                    "lastCaloriesBurnt": float(s["calories_burnt"]) if s["calories_burnt"] is not None else 0,
-                    "lastSteps": s["steps"] if s.get("steps") is not None else 0,
-                    "lastDate": s["workout_exercises"]["workouts"]["date"]
-                })
+                workout = query.data[0]
+                we = workout["workout_exercises"][0]
+                sets = sorted(we.get("sets", []), key=lambda s: s.get("set_order", 0))
+                if sets:
+                    # Pick last set as the baseline
+                    s = sets[-1]
+                    results.append({
+                        "exerciseName": name,
+                        "lastWeight": float(s["weight"]) if s["weight"] is not None else 0,
+                        "lastReps": s["reps"] if s["reps"] is not None else 0,
+                        "lastSpeed": float(s["speed"]) if s["speed"] is not None else 0,
+                        "lastIncline": float(s["incline"]) if s["incline"] is not None else 0,
+                        "lastTimeSeconds": s["time_seconds"] if s["time_seconds"] is not None else 0,
+                        "lastCaloriesBurnt": float(s["calories_burnt"]) if s["calories_burnt"] is not None else 0,
+                        "lastSteps": s["steps"] if s.get("steps") is not None else 0,
+                        "lastDate": workout["date"],
+                        "previousSets": [{"weight": float(st["weight"]) if st.get("weight") is not None else 0, "reps": st["reps"] if st.get("reps") is not None else 0} for st in sets]
+                    })
+                else:
+                    results.append({
+                        "exerciseName": name,
+                        "lastWeight": 0,
+                        "lastReps": 0,
+                        "lastSpeed": 0,
+                        "lastIncline": 0,
+                        "lastTimeSeconds": 0,
+                        "lastCaloriesBurnt": 0,
+                        "lastSteps": 0,
+                        "lastDate": workout["date"],
+                        "previousSets": []
+                    })
             else:
                 results.append({
                     "exerciseName": name,
@@ -191,7 +210,8 @@ class WorkoutService:
                     "lastTimeSeconds": 0,
                     "lastCaloriesBurnt": 0,
                     "lastSteps": 0,
-                    "lastDate": ""
+                    "lastDate": None,
+                    "previousSets": []
                 })
                 
         return results

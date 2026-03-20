@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Workout, Exercise, Set, MuscleGroup, WorkoutTemplate, ExercisePerformance } from '../types';
-import { Plus, Trash2, Save, Dumbbell, Calendar, Clock, Timer, CheckCircle, ChevronDown, List, Star, Play, X, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Dumbbell, Calendar, Clock, Timer, CheckCircle, ChevronDown, List, Star, Play, X, Loader2, TrendingUp } from 'lucide-react';
 import { Button } from './ui/Button';
 import { CustomDatePicker } from './ui/CustomDatePicker';
 import { api } from '../services/api';
@@ -88,24 +88,48 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
 
   const handleStartTimer = () => { setTimeLeft(timerInput); setTimerActive(true); };
 
-  const applyTemplate = (template: WorkoutTemplate) => {
+  const applyTemplate = async (template: WorkoutTemplate) => {
     setName(template.name);
     setSelectedTemplateId(template.id);
-    const templateExercises: Exercise[] = template.exercises
+    
+    const liftingExercises = template.exercises
       .filter(te => te.muscleGroup !== MuscleGroup.CARDIO)
-      .sort((a, b) => a.orderIndex - b.orderIndex)
-      .map(te => ({
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+
+    // Auto-fetch last performance
+    const exerciseNames = liftingExercises.map(te => te.name);
+    let perfMap: Record<string, ExercisePerformance> = {};
+    if (exerciseNames.length > 0) {
+      try {
+        const performances = await api.getLastPerformance(exerciseNames);
+        performances.forEach(p => { perfMap[p.exerciseName.toLowerCase()] = p; });
+        setRecentPerformances(prev => ({ ...prev, ...perfMap }));
+      } catch (err) {}
+    }
+
+    const templateExercises: Exercise[] = liftingExercises.map(te => {
+      const history = perfMap[te.name.toLowerCase()]?.previousSets;
+      const defaultSetCount = history && history.length > 0 ? history.length : te.defaultSets;
+
+      return {
         id: Math.random().toString(36).substr(2, 9),
         name: te.name,
         muscleGroup: te.muscleGroup,
-        sets: Array.from({ length: te.defaultSets }).map((_, i) => ({
-          id: Math.random().toString(36).substr(2, 9) + '-' + i,
-          reps: te.defaultReps, weight: te.defaultWeight,
-          speed: te.defaultSpeed, incline: te.defaultIncline,
-          timeSeconds: te.defaultTimeSeconds, caloriesBurnt: te.defaultCaloriesBurnt || 60,
-          completed: false
-        }))
-      }));
+        sets: Array.from({ length: defaultSetCount }).map((_, i) => {
+          const prevSet = history && history.length > i ? history[i] : null;
+          return {
+            id: Math.random().toString(36).substr(2, 9) + '-' + i,
+            reps: prevSet?.reps || te.defaultReps, 
+            weight: prevSet?.weight || te.defaultWeight,
+            speed: te.defaultSpeed, incline: te.defaultIncline,
+            timeSeconds: te.defaultTimeSeconds, caloriesBurnt: te.defaultCaloriesBurnt || 60,
+            steps: te.defaultSteps || 0,
+            completed: false
+          };
+        })
+      };
+    });
+    
     setExercises(templateExercises);
     setShowTemplateModal(false);
   };
@@ -261,29 +285,49 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ onSave }) => {
               </div>
 
               <div className="p-5 space-y-2">
-                {exercise.sets.map((set, sIndex) => (
-                  <div key={set.id} className="grid grid-cols-12 gap-3 items-center">
-                    <div className="col-span-1 text-xs font-bold text-zinc-300 dark:text-zinc-600">{sIndex + 1}</div>
-                    <div className="col-span-4">
-                      <input type="number" value={set.weight || ''} onChange={(e) => updateSet(exercise.id, set.id, 'weight', Number(e.target.value))}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2.5 text-center text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors" placeholder="kg" />
+                {exercise.sets.map((set, sIndex) => {
+                  const prevSet = perf?.previousSets?.[sIndex];
+                  const improvedWeight = prevSet && set.weight > prevSet.weight;
+                  const improvedReps = prevSet && set.weight === prevSet.weight && set.reps > prevSet.reps;
+                  const improved = improvedWeight || improvedReps;
+
+                  return (
+                    <div key={set.id} className="grid grid-cols-12 gap-3 items-center">
+                      <div className="col-span-1 flex flex-col items-center">
+                        <span className="text-xs font-bold text-zinc-300 dark:text-zinc-600">{sIndex + 1}</span>
+                        {improved && <TrendingUp size={14} className="text-emerald-500 mt-1" title="Better than last time!" />}
+                      </div>
+                      <div className="col-span-4 relative group/input">
+                        <input type="number" value={set.weight || ''} onChange={(e) => updateSet(exercise.id, set.id, 'weight', Number(e.target.value))}
+                          className={`w-full bg-zinc-50 dark:bg-zinc-800 border ${improved ? 'border-emerald-500' : 'border-zinc-200 dark:border-zinc-700'} rounded-lg p-2.5 text-center text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors`} placeholder="kg" />
+                        {prevSet && !improved && (
+                          <div className="opacity-0 group-focus-within/input:opacity-100 absolute -top-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-[10px] px-2 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap transition-opacity">
+                            Last: {prevSet.weight}kg
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-span-4 relative group/reps">
+                        <input type="number" value={set.reps || ''} onChange={(e) => updateSet(exercise.id, set.id, 'reps', Number(e.target.value))}
+                          className={`w-full bg-zinc-50 dark:bg-zinc-800 border ${improvedReps ? 'border-emerald-500' : 'border-zinc-200 dark:border-zinc-700'} rounded-lg p-2.5 text-center text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors`} placeholder="reps" />
+                        {prevSet && !improvedReps && (
+                          <div className="opacity-0 group-focus-within/reps:opacity-100 absolute -top-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-[10px] px-2 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap transition-opacity">
+                            Last: {prevSet.reps} reps
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-span-3 flex justify-end gap-1.5">
+                        <button onClick={() => removeSet(exercise.id, set.id)}
+                          className="w-9 h-9 rounded-lg flex items-center justify-center bg-zinc-50 dark:bg-zinc-800 text-zinc-300 hover:text-red-500 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                        <button onClick={() => updateSet(exercise.id, set.id, 'completed', !set.completed)}
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${set.completed ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border border-zinc-900 dark:border-white' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-200 dark:text-zinc-700 hover:text-zinc-400 border border-transparent'}`}>
+                          <CheckCircle size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="col-span-4">
-                      <input type="number" value={set.reps || ''} onChange={(e) => updateSet(exercise.id, set.id, 'reps', Number(e.target.value))}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2.5 text-center text-sm font-semibold outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors" placeholder="reps" />
-                    </div>
-                    <div className="col-span-3 flex justify-end gap-1.5">
-                      <button onClick={() => removeSet(exercise.id, set.id)}
-                        className="w-9 h-9 rounded-lg flex items-center justify-center bg-zinc-50 dark:bg-zinc-800 text-zinc-300 hover:text-red-500 transition-colors">
-                        <Trash2 size={14} />
-                      </button>
-                      <button onClick={() => updateSet(exercise.id, set.id, 'completed', !set.completed)}
-                        className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${set.completed ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-200 dark:text-zinc-700 hover:text-zinc-400'}`}>
-                        <CheckCircle size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <button onClick={() => addSet(exercise.id)}
                   className="w-full py-3 mt-2 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-400 dark:hover:border-zinc-500 transition-all">

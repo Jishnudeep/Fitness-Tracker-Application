@@ -66,12 +66,13 @@ export interface ExercisePerformance {
   exerciseName: string;
   lastWeight: number;
   lastReps: number;
-  lastSpeed?: number;
-  lastIncline?: number;
-  lastTimeSeconds?: number;
-  lastCaloriesBurnt?: number;
-  lastSteps?: number;
+  lastSpeed: number;
+  lastIncline: number;
+  lastTimeSeconds: number;
+  lastCaloriesBurnt: number;
+  lastSteps: number;
   lastDate: string;
+  previousSets?: { weight: number, reps: number }[];
 }
 
 export interface FoodItem {

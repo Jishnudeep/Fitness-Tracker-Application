@@ -251,7 +251,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
+    <div className="min-h-[100dvh] bg-zinc-50 dark:bg-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
 
       {/* ─── Desktop Sidebar ─── */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[72px] hover:w-[220px] group flex-col z-40 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300 overflow-hidden">
@@ -326,7 +326,7 @@ const AppContent: React.FC = () => {
       </header>
 
       {/* ─── Main Content ─── */}
-      <main className="md:ml-[72px] min-h-screen pb-24 md:pb-8">
+      <main className="md:ml-[72px] min-h-[100dvh] pb-32 md:pb-8">
         <div className="p-4 md:p-8 max-w-6xl mx-auto">
           {/* Desktop welcome bar */}
           <div className="hidden md:flex items-center justify-between mb-8">
@@ -345,7 +345,7 @@ const AppContent: React.FC = () => {
       </main>
 
       {/* ─── Mobile Bottom Nav ─── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 px-4 pt-2 pb-6 z-40">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 px-4 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] z-40">
         <div className="flex justify-around items-center max-w-md mx-auto">
           {mobileNavItems.map(item => {
             if (item.id === 'log') {

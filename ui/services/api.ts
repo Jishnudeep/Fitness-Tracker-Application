@@ -264,7 +264,9 @@ export const api = {
                         lastIncline: lastSet.incline || 0,
                         lastTimeSeconds: lastSet.timeSeconds || 0,
                         lastCaloriesBurnt: lastSet.caloriesBurnt || 0,
-                        lastDate: workout.date
+                        lastSteps: lastSet.steps || 0,
+                        lastDate: workout.date.split('T')[0],
+                        previousSets: exercise.sets.map(s => ({ weight: s.weight || 0, reps: s.reps || 0 }))
                     };
                 }
             }
@@ -276,7 +278,9 @@ export const api = {
                 lastIncline: 0,
                 lastTimeSeconds: 0,
                 lastCaloriesBurnt: 0,
-                lastDate: ''
+                lastSteps: 0,
+                lastDate: '',
+                previousSets: []
             };
         });
     },
